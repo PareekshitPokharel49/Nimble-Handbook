@@ -6,6 +6,8 @@ import StandupFormat from './components/StandupFormat'
 import SLATable from './components/SLATable'
 import CurrentFlow from './components/CurrentFlow'
 import ToBeFlow from './components/ToBeFlow'
+import SOPSection from './components/SOPSection'
+import TicketComments from './components/TicketComments'
 import './App.css'
 
 const sections = [
@@ -15,6 +17,8 @@ const sections = [
   { id: 'sla',       label: '4. SLA Guide' },
   { id: 'current',   label: '5. Current Flow' },
   { id: 'tobe',      label: '6. Improved Flow' },
+  { id: 'sop',       label: '7. SOPs' },
+  { id: 'comments',  label: '8. Ticket Comments' },
 ]
 
 export default function App() {
@@ -61,6 +65,8 @@ export default function App() {
         <section id="current"><CurrentFlow /></section>
         <section id="tobe"><ToBeFlow /></section>
         {/* <section id="practices"><BestPractices /></section> */}
+        <section id="sop"><SOPSection /></section>
+        <section id="comments"><TicketComments /></section>
         <footer className="site-footer">
           Nimble Infosys Pvt. Ltd. · Confidential · Version 1.0 · 2026
         </footer>
