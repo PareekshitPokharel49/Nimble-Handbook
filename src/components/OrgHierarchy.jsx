@@ -1,10 +1,77 @@
+const DEPTS = [
+  { x: 176, label: 'System Analyst', color: '#9B59B6' },
+  { x: 500, label: 'Developer',      color: '#16A085' },
+  { x: 820, label: 'QA',             color: '#E67E22' },
+]
+
+const MEMBERS = [
+  { x:  56, label: 'Prajwol',    dept: 0 },
+  { x: 116, label: 'Annant',     dept: 0 },
+  { x: 176, label: 'Pareekshit', dept: 0 },
+  { x: 236, label: 'Sudesh',     dept: 0 },
+  { x: 296, label: 'Gopi',       dept: 0 },
+  { x: 386, label: 'Gopal',      dept: 1 },
+  { x: 443, label: 'Prashant',   dept: 1 },
+  { x: 500, label: 'Chiranjivi', dept: 1 },
+  { x: 557, label: 'Ashmita',    dept: 1 },
+  { x: 614, label: 'Anu',        dept: 1 },
+  { x: 755, label: 'Shramila',   dept: 2 },
+  { x: 820, label: 'Sadikshya',  dept: 2 },
+  { x: 885, label: 'Bimala',     dept: 2 },
+]
+
+function curve(x1, y1, x2, y2) {
+  const mid = (y1 + y2) / 2
+  return `M ${x1} ${y1} C ${x1} ${mid}, ${x2} ${mid}, ${x2} ${y2}`
+}
+
+function OrgChart() {
+  const rootX = 500, rootY = 30, rootW = 164, rootH = 54
+  const deptY = 170
+  const memberY = 278
+
+  return (
+    <svg viewBox="0 0 1000 320" style={{ width:'100%', maxWidth:1000, display:'block', margin:'0 auto 36px', borderRadius:10 }}>
+      <rect x={0} y={0} width={1000} height={320} fill="#F1F3F6" rx={10} />
+
+      {/* root → dept curves */}
+      {DEPTS.map(d => (
+        <path key={d.label} d={curve(rootX, rootY + rootH, d.x, deptY - 16)}
+          fill="none" stroke={d.color} strokeWidth={1.8} />
+      ))}
+
+      {/* root box */}
+      <rect x={rootX - rootW/2} y={rootY} width={rootW} height={rootH} rx={7}
+        fill="white" stroke="#d0d0d0" strokeWidth={1.5} />
+      <text x={rootX} y={rootY + 22} textAnchor="middle" fontSize={14} fontWeight={700} fill="#1a1a1a">Ram Sapkota</text>
+      <text x={rootX} y={rootY + 40} textAnchor="middle" fontSize={13} fill="#555">(Senior SE)</text>
+
+      {/* dept labels */}
+      {DEPTS.map(d => (
+        <text key={d.label} x={d.x} y={deptY} textAnchor="middle" fontSize={14} fill={d.color}>{d.label}</text>
+      ))}
+
+      {/* dept → member curves */}
+      {MEMBERS.map(m => (
+        <path key={m.label} d={curve(DEPTS[m.dept].x, deptY + 6, m.x, memberY - 14)}
+          fill="none" stroke={DEPTS[m.dept].color} strokeWidth={1.5} />
+      ))}
+
+      {/* member labels */}
+      {MEMBERS.map(m => (
+        <text key={m.label} x={m.x} y={memberY} textAnchor="middle" fontSize={12} fill={DEPTS[m.dept].color}>{m.label}</text>
+      ))}
+    </svg>
+  )
+}
+
 export default function OrgHierarchy() {
   return (
     <>
       <h2 className="section-title">1. Organisation Hierarchy</h2>
       <p className="section-subtitle">Who is in each team and how they connect</p>
 
-      <img src="/org_chart.png" alt="Nimble Infosys Organisation Chart" className="flow-image" style={{ marginBottom: '36px' }} />
+      <OrgChart />
 
       <div className="sub-heading">Teams</div>
       <ul className="bullet-list">

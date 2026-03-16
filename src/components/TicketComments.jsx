@@ -50,9 +50,8 @@ const templates = [
         fields: [
           { label: 'Priority', hint: 'Immediate / Urgent / High / Normal / Low' },
           { label: 'Assigned To', hint: 'Developer name' },
-          { label: 'Sprint', hint: 'Sprint number or "Current sprint"' },
           { label: 'SLA Due', hint: 'Date by which this must be resolved' },
-          { label: 'Steps to Reproduce', hint: 'Clear steps CSD or SA confirmed' },
+          { label: 'Steps to Reproduce/replicate', hint: 'Clear steps CSD or SA confirmed' },
           { label: 'Expected vs Actual', hint: 'What should happen vs what is happening' },
           { label: 'Notes', hint: 'Any context, workaround in place, client sensitivity, or related tickets' },
         ],
@@ -130,7 +129,7 @@ function FormatCard({ fmt }) {
 export default function TicketComments() {
   return (
     <>
-      <h2 className="section-title">8. Ticket Comment Templates</h2>
+      <h2 className="section-title">7. Ticket Comment Templates</h2>
       <p className="section-subtitle">Standard format every team member must follow when adding comments to a ticket</p>
 
       <p className="body-text">

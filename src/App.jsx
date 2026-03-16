@@ -3,7 +3,6 @@ import Nav from './components/Nav'
 import OrgHierarchy from './components/OrgHierarchy'
 import MeetingCalendar from './components/MeetingCalendar'
 import StandupFormat from './components/StandupFormat'
-import SLATable from './components/SLATable'
 import CurrentFlow from './components/CurrentFlow'
 import ToBeFlow from './components/ToBeFlow'
 import SOPSection from './components/SOPSection'
@@ -14,11 +13,10 @@ const sections = [
   { id: 'org',       label: '1. Organisation' },
   { id: 'calendar',  label: '2. Meeting Calendar' },
   { id: 'standup',   label: '3. Standup Format' },
-  { id: 'sla',       label: '4. SLA Guide' },
-  { id: 'current',   label: '5. Current Flow' },
-  { id: 'tobe',      label: '6. Improved Flow' },
-  { id: 'sop',       label: '7. SOPs' },
-  { id: 'comments',  label: '8. Ticket Comments' },
+  { id: 'current',   label: '4. Current Flow' },
+  { id: 'tobe',      label: '5. Improved Flow' },
+  { id: 'sop',       label: '6. SOPs' },
+  { id: 'comments',  label: '7. Ticket Comments' },
 ]
 
 export default function App() {
@@ -61,8 +59,7 @@ export default function App() {
         <section id="org"><OrgHierarchy /></section>
         <section id="calendar"><MeetingCalendar /></section>
         <section id="standup"><StandupFormat /></section>
-        <section id="sla"><SLATable /></section>
-        <section id="current"><CurrentFlow /></section>
+<section id="current"><CurrentFlow /></section>
         <section id="tobe"><ToBeFlow /></section>
         {/* <section id="practices"><BestPractices /></section> */}
         <section id="sop"><SOPSection /></section>

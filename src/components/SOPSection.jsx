@@ -69,7 +69,7 @@ const roles = [
   {
     id: 'dev',
     title: 'Developer',
-    owner: 'Lead: Khem sir',
+    owner: 'Ram Sapkota',
     color: '#EBF5FF',
     text: '#1F4E79',
     accent: '#1F4E79',
@@ -152,7 +152,7 @@ const roles = [
         items: [
           'Record all test results in the separate QA log — not in the ticket itself.',
           'The QA log must include: test case name, input, expected result, actual result, pass/fail.',
-          'The ticket comment should contain only the summary (see Section 8 for format).',
+          'The ticket comment should contain only the summary (see Section 7 for format).',
         ],
       },
       {
@@ -195,7 +195,7 @@ function StepCard({ step, accent }) {
 export default function SOPSection() {
   return (
     <>
-      <h2 className="section-title">7. Standard Operating Procedures</h2>
+      <h2 className="section-title">6. Standard Operating Procedures</h2>
       <p className="section-subtitle">Step-by-step responsibilities for each team — aligned with the To-Be ticket flow</p>
 
       {roles.map((role, ri) => (
@@ -209,6 +209,23 @@ export default function SOPSection() {
           {role.steps.map((step, i) => (
             <StepCard key={i} step={step} accent={role.accent} />
           ))}
+          {role.id === 'qa' && (
+            <div style={{ marginTop: '20px', background: '#F0FDF4', border: '1px solid #BBF7D0', borderRadius: '10px', padding: '20px 24px' }}>
+              <div style={{ fontWeight: 700, fontSize: '14px', color: '#14532D', marginBottom: '8px' }}>QA Test Case Sheet</div>
+              <p style={{ fontSize: '13px', color: '#333', margin: '0 0 12px 0' }}>
+                QA must write and fill test cases in the standard format for <strong>every ticket</strong> before testing begins.
+                The completed sheet must be attached to the ticket as part of the QA sign-off. Do not mark a ticket as passed without a filled test case log.
+              </p>
+              <a
+                href="https://docs.google.com/spreadsheets/d/1OxTHqtPXKXxjD5cysfgicDbpSB9oBeLUqhApHkDDXRw/edit?gid=793810348#gid=793810348"
+                target="_blank"
+                rel="noreferrer"
+                style={{ display: 'inline-block', background: '#15803D', color: '#fff', fontWeight: 600, fontSize: '13px', padding: '8px 16px', borderRadius: '6px', textDecoration: 'none' }}
+              >
+                Open QA Test Case Sheet ↗
+              </a>
+            </div>
+          )}
         </div>
       ))}
     </>
