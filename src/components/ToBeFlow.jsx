@@ -128,6 +128,7 @@ export default function ToBeFlow() {
                 <li style={S.li}><b>If Invalid / Duplicate / Out of scope:</b> Reject with written reason</li>
                 <li style={S.li}>Assign to: Backlog or Current Sprint</li>
                 <li style={S.li}>Set start date, end date, story points</li>
+                <li style={S.li}><b>Ticket must be ≤ 8 hours of dev effort</b> — if larger, break it into sub-tickets before assigning</li>
               </ul>
             </div>
             <span style={S.badge('#FEE2E2','#B91C1C')}>✗ Invalid / Duplicate / Out of scope — Rejected</span>
@@ -188,6 +189,7 @@ export default function ToBeFlow() {
                 <li style={S.li}>Impact analysis filled in ✓</li>
                 <li style={S.li}>Description of fix added ✓</li>
                 <li style={S.li}>Module / area of change noted ✓</li>
+                <li style={S.li}><b>If ticket took or will take &gt; 8 hours</b> — stop and ask SA to break it down before continuing</li>
               </ul>
             </div>
             <span style={S.badge('#FEE2E2','#B91C1C')}>✗ Not ready — fix and recheck</span>
