@@ -32,6 +32,17 @@ const features = [
     file: '/nimble_ticket_view.html',
     label: 'Open Wireframe in Full Screen ↗',
   },
+  {
+    num: 4,
+    title: 'QA Test Cases — In-Ticket Testing Panel',
+    desc: 'A dedicated QA Test Cases panel embedded directly inside the Ticket View. QA engineers can add test cases, document steps and expected results, record actual results, set pass/fail/blocked/pending status, and attach screenshots — all without leaving the ticket. A live progress bar and summary cards show test coverage at a glance.',
+    cards: [
+      { title: 'Inline Test Case Management', desc: 'Add, expand, and update test cases directly within the ticket. Each case has steps, expected result, actual result, status buttons, and screenshot upload.', color: '#F0FDF4', text: '#15803D' },
+      { title: 'Live Progress Tracking', desc: 'Summary cards show total, pass, fail, blocked, and pending counts. A colour-coded progress bar updates in real time as QA marks each test case.', color: '#EFF6FF', text: '#1D4ED8' },
+    ],
+    file: '/nimble_qa_v2.html',
+    label: 'Open Wireframe in Full Screen ↗',
+  },
 ]
 
 export default function PMSFeature() {
