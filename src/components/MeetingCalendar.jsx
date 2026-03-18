@@ -9,11 +9,11 @@ const meetings = [
   },
   {
     time: '9:30 AM',
-    mon:  { label: 'Week kickoff', sub: '20 min · All teams', color: '#EDEBF7', text: '#4B3A8A' },
-    tue:  null,
+    mon:  { label: 'Week wrap-up', sub: '20 min · All teams', color: '#EDEBF7', text: '#4B3A8A' },
+    tue:  { label: 'Week kickoff', sub: '20 min · All teams', color: '#EDEBF7', text: '#4B3A8A' },
     wed:  null,
     thu:  null,
-    fri:  { label: 'Week wrap-up', sub: '20 min · All teams', color: '#EDEBF7', text: '#4B3A8A' },
+    fri:  null,
   },
   {
     time: '11:00 AM',
@@ -21,7 +21,7 @@ const meetings = [
     tue:  null,
     wed:  { label: 'Backlog refine', sub: '45 min · SA + Dev lead', color: '#FEF9E7', text: '#7B4F00' },
     thu:  null,
-    fri:  { label: 'Sprint review*', sub: 'Last Fri · 1 hr · All teams', color: '#EBF5FF', text: '#1F4E79' },
+    fri:  null,
   },
   {
     time: '2:00 PM',
@@ -85,9 +85,6 @@ export default function MeetingCalendar() {
           </tbody>
         </table>
       </div>
-      <p style={{ fontSize: '12px', color: '#888', marginTop: '12px' }}>
-        * Sprint review replaces the week wrap-up on the last Friday of each sprint only.
-      </p>
 
       <div style={{ marginTop: '32px', background: '#F0F7FF', border: '1px solid #C3D9F5', borderRadius: '10px', padding: '20px 24px' }}>
         <div style={{ fontWeight: 700, fontSize: '14px', color: '#1F4E79', marginBottom: '8px' }}>Daily Work Record</div>

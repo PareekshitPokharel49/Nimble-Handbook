@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nimble Infosys - Add Task</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --navy: #1a2b4a; --navy-dark: #132038; --navy-light: #243555;
+    --accent: #f97316; --sidebar-w: 220px; --topbar-h: 48px;
+    --text: #1e293b; --muted: #64748b; --border: #d1d5db;
+    --bg: #f1f5f9; --input-bg: #fff; --label-w: 160px;
+  }
+  body { font-family: 'Segoe UI', sans-serif; font-size: 13px; background: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+  .topbar { height: var(--topbar-h); background: var(--navy); display: flex; align-items: center; padding: 0 16px; gap: 12px; flex-shrink: 0; z-index: 100; }
+  .topbar-modules { color: #94a3b8; font-size: 12px; display: flex; align-items: center; gap: 6px; }
+  .topbar-modules span { color: #fff; }
+  .topbar-modules .sep { color: #475569; }
+  .topbar-search { flex: 1; max-width: 340px; margin: 0 auto; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12); border-radius: 4px; padding: 5px 12px; color: #fff; font-size: 12px; outline: none; }
+  .topbar-search::placeholder { color: #94a3b8; }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 16px; color: #94a3b8; font-size: 11px; }
+  .topbar-right .fy { color: #cbd5e1; }
+  .topbar-avatar { width: 28px; height: 28px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; color: var(--navy); }
+  .topbar-user { color: #e2e8f0; font-size: 12px; }
+  .layout { display: flex; flex: 1; overflow: hidden; }
+  .sidebar { width: var(--sidebar-w); background: var(--navy); flex-shrink: 0; display: flex; flex-direction: column; overflow-y: auto; padding-bottom: 16px; }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+  .sidebar-top { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 8px; }
+  .sidebar-top-label { color: #cbd5e1; font-size: 12px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 14px; color: #94a3b8; cursor: pointer; font-size: 12px; border-left: 3px solid transparent; }
+  .nav-item:hover { background: rgba(255,255,255,0.05); color: #e2e8f0; }
+  .nav-item .icon { font-size: 14px; width: 18px; text-align: center; }
+  .nav-item .chevron { margin-left: auto; font-size: 10px; color: #475569; }
+  .sub-menu { background: rgba(0,0,0,0.15); }
+  .sub-item { display: flex; align-items: center; gap: 8px; padding: 8px 14px 8px 38px; color: #94a3b8; cursor: pointer; font-size: 12px; border-left: 3px solid transparent; }
+  .sub-item:hover { background: rgba(255,255,255,0.05); color: #e2e8f0; }
+  .sub-item.active { color: #fff; background: rgba(255,255,255,0.06); border-left-color: var(--accent); }
+  .sub-item .dot { width: 5px; height: 5px; border-radius: 50%; background: #475569; flex-shrink: 0; }
+  .sub-item.active .dot { background: var(--accent); }
+  .sidebar-logo { margin-top: auto; padding: 12px 14px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 10px; }
+  .logo-circle { width: 32px; height: 32px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900; color: #fff; font-size: 14px; }
+  .logo-text { color: #e2e8f0; font-size: 12px; font-weight: 600; line-height: 1.2; }
+  .logo-text small { color: #64748b; font-size: 10px; font-weight: 400; }
+  .main { flex: 1; overflow-y: auto; background: #fff; }
+  .main::-webkit-scrollbar { width: 6px; }
+  .main::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+  .page-header { padding: 14px 24px 0; border-bottom: 1px solid var(--border); }
+  .page-header h2 { font-size: 16px; font-weight: 600; color: var(--text); padding-bottom: 12px; }
+  .form-body { padding: 20px 24px 40px; max-width: 1100px; }
+  .type-selector-row { display: flex; align-items: center; margin-bottom: 18px; gap: 16px; padding: 12px 16px; background: #f8fafc; border: 1px solid var(--border); border-radius: 6px; }
+  .type-label { font-size: 12px; color: var(--muted); font-weight: 500; white-space: nowrap; min-width: 100px; }
+  .type-buttons { display: flex; gap: 8px; }
+  .type-btn { display: flex; align-items: center; gap: 7px; padding: 7px 18px; border-radius: 5px; font-size: 12px; font-weight: 600; cursor: pointer; border: 2px solid var(--border); background: #fff; color: var(--muted); transition: all 0.15s; font-family: inherit; }
+  .type-btn:hover { border-color: #94a3b8; color: var(--text); }
+  .type-btn.active.feature { border-color: #2563eb; background: #eff6ff; color: #2563eb; }
+  .type-btn.active.bug { border-color: #dc2626; background: #fef2f2; color: #dc2626; }
+  .type-btn.active.task { border-color: #16a34a; background: #f0fdf4; color: #16a34a; }
+  .type-badge { font-size: 14px; }
+  .type-hint { margin-left: auto; font-size: 11px; color: var(--muted); font-style: italic; }
+  .form-row { display: flex; align-items: flex-start; margin-bottom: 14px; gap: 0; }
+  .form-row-half { display: grid; grid-template-columns: 1fr 1fr; gap: 0; margin-bottom: 14px; }
+  .field { display: flex; align-items: flex-start; flex: 1; }
+  .field-label { min-width: var(--label-w); padding-top: 8px; padding-right: 16px; font-size: 12px; color: var(--muted); text-align: right; flex-shrink: 0; }
+  .field-label .req { color: #dc2626; }
+  .field-control { flex: 1; }
+  .form-select, .form-input { width: 100%; border: 1px solid var(--border); border-radius: 3px; padding: 7px 10px; font-size: 12px; font-family: inherit; color: var(--text); background: var(--input-bg); outline: none; }
+  .input-with-icon { position: relative; display: flex; align-items: center; }
+  .input-with-icon .form-input { padding-right: 32px; }
+  .input-icon { position: absolute; right: 8px; color: var(--muted); font-size: 14px; }
+  .rte-toolbar { border: 1px solid var(--border); border-bottom: none; border-radius: 3px 3px 0 0; padding: 5px 8px; background: #f9fafb; display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
+  .rte-btn { width: 24px; height: 24px; border: none; background: none; cursor: pointer; border-radius: 3px; font-size: 12px; color: #374151; display: flex; align-items: center; justify-content: center; font-family: serif; }
+  .rte-btn:hover { background: #e5e7eb; }
+  .rte-sep { width: 1px; height: 16px; background: var(--border); margin: 0 3px; }
+  .rte-source { font-size: 10px; font-family: monospace; padding: 0 6px; height: 24px; display: flex; align-items: center; color: #374151; border: none; background: none; cursor: pointer; border-radius: 3px; }
+  .desc-section { border: 1px solid var(--border); border-radius: 0 0 3px 3px; overflow: hidden; }
+  .desc-block { border-bottom: 1px solid var(--border); }
+  .desc-block:last-child { border-bottom: none; }
+  .desc-block-header { padding: 7px 12px; background: #f9fafb; font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 6px; }
+  .desc-block-header .block-badge { margin-left: auto; font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 3px; text-transform: none; letter-spacing: 0; }
+  .badge-required { background: #fee2e2; color: #b91c1c; }
+  .badge-optional { background: #f3f4f6; color: #6b7280; }
+  .desc-block-body { min-height: 80px; padding: 10px 12px; font-size: 12px; color: #9ca3af; font-style: italic; outline: none; cursor: text; }
+  .desc-block-body.tall { min-height: 120px; }
+  .steps-body { padding: 10px 12px; min-height: 80px; }
+  .step-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; }
+  .step-num { width: 20px; height: 20px; border-radius: 50%; background: var(--navy); color: #fff; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 6px; }
+  .step-input { flex: 1; border: 1px solid var(--border); border-radius: 3px; padding: 6px 10px; font-size: 12px; font-family: inherit; outline: none; color: #9ca3af; font-style: italic; }
+  .add-step { margin-top: 4px; font-size: 11px; color: #2563eb; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+  .checkbox-group { display: flex; align-items: center; gap: 16px; padding-top: 8px; }
+  .checkbox-item { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text); cursor: pointer; }
+  .checkbox-item input[type="checkbox"] { accent-color: var(--navy); width: 13px; height: 13px; }
+  .form-footer { padding: 14px 24px; background: #f8fafc; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 8px; position: sticky; bottom: 0; }
+  .btn { display: flex; align-items: center; gap: 5px; padding: 7px 16px; border-radius: 4px; font-size: 12px; cursor: pointer; border: 1px solid var(--border); background: #fff; color: var(--text); font-family: inherit; font-weight: 500; }
+  .btn.primary { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .btn.secondary { background: #fff; color: var(--muted); }
+  .type-strip { height: 3px; background: #e5e7eb; }
+  .type-strip.feature { background: #2563eb; }
+  .type-strip.bug { background: #dc2626; }
+  .type-strip.task { background: #16a34a; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-modules">☰ Modules <span class="sep">»</span> <span>ESS Portal</span></div>
+  <input class="topbar-search" type="text" placeholder="Search...">
+  <div class="topbar-right">
+    <span class="fy">FY: 2082-2083 | LY: 2082-2083</span>
+    <div class="topbar-avatar">PP</div>
+    <span class="topbar-user">Pareekshit Pokharel</span>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-top"><span class="sidebar-top-label">Main Dashboard</span></div>
+    <div style="margin-top:4px;">
+      <div class="nav-item">🏠 Dashboard</div>
+      <div class="nav-item">⏰ Custom Menu <span class="chevron">›</span></div>
+      <div class="nav-item">📋 Quick Links <span class="chevron">›</span></div>
+      <div class="nav-item" style="color:#fff;border-left-color:var(--accent);background:rgba(255,255,255,0.05);">
+        ✅ My Tasks <span class="chevron" style="transform:rotate(90deg);">›</span>
+      </div>
+      <div class="sub-menu">
+        <div class="sub-item"><span class="dot"></span> Dashboard</div>
+        <div class="sub-item active"><span class="dot"></span> Manage Task</div>
+        <div class="sub-item"><span class="dot"></span> Milestone</div>
+        <div class="sub-item"><span class="dot"></span> Kanban Board</div>
+        <div class="sub-item"><span class="dot"></span> Task Comments</div>
+        <div class="sub-item"><span class="dot"></span> Workspace</div>
+        <div class="sub-item"><span class="dot"></span> My Calendar</div>
+      </div>
+      <div class="nav-item">📅 Attendance <span class="chevron">›</span></div>
+      <div class="nav-item">🌿 Leave and Fieldwork <span class="chevron">›</span></div>
+      <div class="nav-item">✈ Travel and TADA <span class="chevron">›</span></div>
+      <div class="nav-item">📝 Request and Claims <span class="chevron">›</span></div>
+      <div class="nav-item">⚡ Activity and Response <span class="chevron">›</span></div>
+      <div class="nav-item">🚪 Exit Process <span class="chevron">›</span></div>
+      <div class="nav-item">🎯 Goals and Appraisal <span class="chevron">›</span></div>
+      <div class="nav-item">📊 Employee Development <span class="chevron">›</span></div>
+    </div>
+    <div class="sidebar-logo">
+      <div class="logo-circle">N</div>
+      <div class="logo-text">Nimble<br><small>Infosys</small></div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div id="type-strip" class="type-strip feature"></div>
+    <div class="page-header"><h2>Add Task</h2></div>
+
+    <div class="form-body">
+      <div class="type-selector-row">
+        <span class="type-label">Task Type <span style="color:#dc2626;">*</span></span>
+        <div class="type-buttons">
+          <button class="type-btn active feature" onclick="setType('feature', this)"><span class="type-badge">📋</span> Feature</button>
+          <button class="type-btn bug" onclick="setType('bug', this)"><span class="type-badge">🐛</span> Bug</button>
+          <button class="type-btn task" onclick="setType('task', this)"><span class="type-badge">✅</span> Task</button>
+        </div>
+        <span class="type-hint" id="type-hint">Describe a new feature or enhancement request</span>
+      </div>
+
+      <div class="form-row-half">
+        <div class="field"><span class="field-label">Project</span><div class="field-control"><select class="form-select"><option>-Select-</option><option>HRMS Core</option><option>ESS Portal</option><option>PM Tool</option></select></div></div>
+        <div class="field"><span class="field-label">Category</span><div class="field-control" style="padding-left:24px;"><select class="form-select"><option>-Select-</option><option>UI</option><option>Backend</option><option>Database</option></select></div></div>
+      </div>
+
+      <div class="form-row-half">
+        <div class="field"><span class="field-label">Main Activities</span><div class="field-control"><select class="form-select"><option></option><option>Development</option><option>QA Testing</option><option>Deployment</option></select></div></div>
+        <div class="field"><span class="field-label">Assignee</span><div class="field-control" style="padding-left:24px;"><div class="input-with-icon"><input type="text" class="form-input"><span class="input-icon">👤</span></div></div></div>
+      </div>
+
+      <div class="form-row">
+        <div class="field"><span class="field-label">Task Title <span class="req">*</span></span><div class="field-control"><input type="text" class="form-input"></div></div>
+      </div>
+
+      <div class="form-row">
+        <div class="field" style="align-items:flex-start;">
+          <span class="field-label" style="padding-top:10px;">Description <span class="req">*</span></span>
+          <div class="field-control">
+            <div class="rte-toolbar">
+              <button class="rte-btn" style="font-weight:900;">B</button>
+              <button class="rte-btn" style="font-style:italic;">I</button>
+              <button class="rte-btn" style="text-decoration:underline;">U</button>
+              <button class="rte-btn" style="text-decoration:line-through;">S</button>
+              <div class="rte-sep"></div>
+              <button class="rte-btn">≡</button><button class="rte-btn">≡</button><button class="rte-btn">≡</button>
+              <div class="rte-sep"></div>
+              <button class="rte-btn">⬇</button><button class="rte-btn">⬇</button>
+              <div class="rte-sep"></div>
+              <button class="rte-source">⊞ Source</button>
+            </div>
+
+            <div id="desc-feature" class="desc-section">
+              <div class="desc-block"><div class="desc-block-header">📋 Description <span class="block-badge badge-required">Required</span></div><div class="desc-block-body tall" contenteditable="true">Provide a clear summary of the feature. What is it and what problem does it solve?</div></div>
+              <div class="desc-block"><div class="desc-block-header">🎯 Expected Behaviour <span class="block-badge badge-required">Required</span></div><div class="desc-block-body" contenteditable="true">Describe how this feature should work once implemented.</div></div>
+              <div class="desc-block"><div class="desc-block-header">✅ Acceptance Criteria <span class="block-badge badge-required">Required</span></div><div class="desc-block-body tall" contenteditable="true">List the conditions that must be met for this feature to be considered complete.</div></div>
+              <div class="desc-block"><div class="desc-block-header">🔗 Dependencies / References <span class="block-badge badge-optional">Optional</span></div><div class="desc-block-body" contenteditable="true">Any related tickets, Figma links, or documentation references.</div></div>
+              <div class="desc-block"><div class="desc-block-header">💬 Additional Notes <span class="block-badge badge-optional">Optional</span></div><div class="desc-block-body" contenteditable="true">Anything else the developer should know. Edge cases, out of scope items, etc.</div></div>
+            </div>
+
+            <div id="desc-bug" class="desc-section hidden">
+              <div class="desc-block"><div class="desc-block-header">🐛 Bug Description <span class="block-badge badge-required">Required</span></div><div class="desc-block-body" contenteditable="true">Briefly describe the bug. What is happening that should not be happening?</div></div>
+              <div class="desc-block"><div class="desc-block-header">📍 Actual Behaviour <span class="block-badge badge-required">Required</span></div><div class="desc-block-body" contenteditable="true">What is currently happening? Describe exactly what you see.</div></div>
+              <div class="desc-block"><div class="desc-block-header">🎯 Expected Behaviour <span class="block-badge badge-required">Required</span></div><div class="desc-block-body" contenteditable="true">What should be happening instead?</div></div>
+              <div class="desc-block">
+                <div class="desc-block-header">📋 Steps to Replicate <span class="block-badge badge-required">Required</span></div>
+                <div class="steps-body">
+                  <div class="step-row"><div class="step-num">1</div><input class="step-input" type="text" placeholder="e.g. Navigate to ESS Portal > My Tasks"></div>
+                  <div class="step-row"><div class="step-num">2</div><input class="step-input" type="text" placeholder="e.g. Click on Add Task button"></div>
+                  <div class="step-row"><div class="step-num">3</div><input class="step-input" type="text" placeholder="e.g. Fill in the form and click Save"></div>
+                  <div class="add-step" onclick="addStep()">+ Add step</div>
+                </div>
+              </div>
+              <div class="desc-block"><div class="desc-block-header">📎 Environment / Screenshot <span class="block-badge badge-optional">Optional</span></div><div class="desc-block-body" contenteditable="true">Browser, OS, user role, or any relevant environment details.</div></div>
+            </div>
+
+            <div id="desc-task" class="desc-section hidden">
+              <div class="desc-block"><div class="desc-block-header">📋 Task Description <span class="block-badge badge-required">Required</span></div><div class="desc-block-body tall" contenteditable="true">Describe what needs to be done. Be specific about the deliverable.</div></div>
+              <div class="desc-block"><div class="desc-block-header">✅ Definition of Done <span class="block-badge badge-optional">Optional</span></div><div class="desc-block-body" contenteditable="true">How will you know this task is complete?</div></div>
+              <div class="desc-block"><div class="desc-block-header">💬 Notes <span class="block-badge badge-optional">Optional</span></div><div class="desc-block-body" contenteditable="true">Any additional context or references.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row"><div class="field"><span class="field-label">Parent Task</span><div class="field-control"><input type="text" class="form-input"></div></div></div>
+
+      <div class="form-row-half">
+        <div class="field"><span class="field-label">Task Status</span><div class="field-control"><select class="form-select"><option>Backlog</option><option>New</option><option>In Progress</option><option>Resolved</option><option>Closed</option></select></div></div>
+        <div class="field"><span class="field-label">Start Date</span><div class="field-control" style="padding-left:24px;"><input type="date" class="form-input"></div></div>
+      </div>
+
+      <div class="form-row-half">
+        <div class="field"><span class="field-label">Priority</span><div class="field-control"><select class="form-select"><option>Normal</option><option>High</option><option>Urgent</option><option>Immediate</option></select></div></div>
+        <div class="field"><span class="field-label">Due Date</span><div class="field-control" style="padding-left:24px;"><input type="date" class="form-input"></div></div>
+      </div>
+
+      <div class="form-row-half">
+        <div class="field"><span class="field-label">Additional Assignee</span><div class="field-control"><input type="text" class="form-input"></div></div>
+        <div class="field"><span class="field-label" style="padding-left:24px;">Story Point</span><div class="field-control" style="padding-left:24px;display:flex;gap:8px;"><input type="number" class="form-input" style="width:100px;"><span style="padding-top:8px;font-size:11px;color:var(--muted);white-space:nowrap;">Est. Hour</span><input type="text" class="form-input" style="width:100px;" placeholder="HH:MM"></div></div>
+      </div>
+
+      <div class="form-row-half">
+        <div class="field"><span class="field-label">Watcher Groups</span><div class="field-control"><input type="text" class="form-input"></div></div>
+        <div class="field"><span class="field-label">Tags</span><div class="field-control" style="padding-left:24px;"><input type="text" class="form-input"></div></div>
+      </div>
+
+      <div class="form-row-half">
+        <div class="field"><span class="field-label">Customer</span><div class="field-control"><input type="text" class="form-input"></div></div>
+        <div class="field"><span class="field-label"></span><div class="field-control" style="padding-left:24px;"><div class="checkbox-group"><label class="checkbox-item"><input type="checkbox"> Mark As Major Task</label><label class="checkbox-item"><input type="checkbox"> TimeBooking</label><label class="checkbox-item"><input type="checkbox"> Allow Task Pull</label></div></div></div>
+      </div>
+    </div>
+
+    <div class="form-footer">
+      <button class="btn primary">💾 Save</button>
+      <button class="btn secondary">Save &amp; Add New</button>
+      <button class="btn secondary">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const hints = {
+    feature: 'Describe a new feature or enhancement request',
+    bug: 'Report something that is broken or not working as expected',
+    task: 'A general work item or internal task with no specific type'
+  };
+  function setType(type, el) {
+    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active','feature','bug','task'));
+    el.classList.add('active', type);
+    document.getElementById('type-hint').textContent = hints[type];
+    const strip = document.getElementById('type-strip');
+    strip.className = 'type-strip ' + type;
+    document.getElementById('desc-feature').classList.add('hidden');
+    document.getElementById('desc-bug').classList.add('hidden');
+    document.getElementById('desc-task').classList.add('hidden');
+    document.getElementById('desc-' + type).classList.remove('hidden');
+  }
+  let stepCount = 3;
+  function addStep() {
+    stepCount++;
+    const container = document.querySelector('.steps-body');
+    const addBtn = container.querySelector('.add-step');
+    const row = document.createElement('div');
+    row.className = 'step-row';
+    row.innerHTML = `<div class="step-num">${stepCount}</div><input class="step-input" type="text" placeholder="Add next step...">`;
+    container.insertBefore(row, addBtn);
+  }
+</script>
+</body>
+</html>

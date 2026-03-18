@@ -7,6 +7,7 @@ import CurrentFlow from './components/CurrentFlow'
 import ToBeFlow from './components/ToBeFlow'
 import SOPSection from './components/SOPSection'
 import TicketComments from './components/TicketComments'
+import PMSFeature from './components/PMSFeature'
 import './App.css'
 
 const sections = [
@@ -17,6 +18,7 @@ const sections = [
   { id: 'tobe',      label: '5. Improved Flow' },
   { id: 'sop',       label: '6. SOPs' },
   { id: 'comments',  label: '7. Ticket Comments' },
+  { id: 'pms',       label: '8. PMS Feature' },
 ]
 
 export default function App() {
@@ -64,6 +66,7 @@ export default function App() {
         {/* <section id="practices"><BestPractices /></section> */}
         <section id="sop"><SOPSection /></section>
         <section id="comments"><TicketComments /></section>
+        <section id="pms"><PMSFeature /></section>
         <footer className="site-footer">
           Nimble Infosys Pvt. Ltd. · Confidential · Version 1.0 · 2026
         </footer>

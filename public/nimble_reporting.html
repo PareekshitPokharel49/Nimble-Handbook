@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nimble Infosys - Reporting</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --navy: #1a2b4a;
+    --navy-dark: #132038;
+    --navy-light: #243555;
+    --accent: #f97316;
+    --accent-light: #fff7ed;
+    --sidebar-w: 220px;
+    --topbar-h: 48px;
+    --text: #1e293b;
+    --muted: #64748b;
+    --border: #e2e8f0;
+    --row-hover: #f8fafc;
+    --present: #16a34a;
+    --absent: #dc2626;
+    --bg: #f1f5f9;
+  }
+
+  body { font-family: 'Segoe UI', sans-serif; font-size: 13px; background: var(--bg); color: var(--text); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+  .topbar {
+    height: var(--topbar-h); background: var(--navy); display: flex; align-items: center;
+    padding: 0 16px; gap: 12px; flex-shrink: 0; z-index: 100;
+  }
+  .topbar-modules { color: #94a3b8; font-size: 12px; display: flex; align-items: center; gap: 6px; }
+  .topbar-modules span { color: #fff; }
+  .topbar-modules .sep { color: #475569; }
+  .topbar-search {
+    flex: 1; max-width: 340px; margin: 0 auto;
+    background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 4px; padding: 5px 12px; color: #fff; font-size: 12px; outline: none;
+  }
+  .topbar-search::placeholder { color: #94a3b8; }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 16px; color: #94a3b8; font-size: 11px; }
+  .topbar-right .fy { color: #cbd5e1; }
+  .topbar-avatar { width: 28px; height: 28px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; color: var(--navy); }
+  .topbar-user { color: #e2e8f0; font-size: 12px; }
+
+  .layout { display: flex; flex: 1; overflow: hidden; }
+
+  .sidebar {
+    width: var(--sidebar-w); background: var(--navy); flex-shrink: 0;
+    display: flex; flex-direction: column; overflow-y: auto; padding-bottom: 16px;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+
+  .sidebar-top { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; gap: 8px; }
+  .sidebar-top-icon { color: #94a3b8; font-size: 14px; }
+  .sidebar-top-label { color: #cbd5e1; font-size: 12px; }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 9px 14px;
+    color: #94a3b8; cursor: pointer; font-size: 12px; transition: all 0.15s;
+    border-left: 3px solid transparent;
+  }
+  .nav-item:hover { background: rgba(255,255,255,0.05); color: #e2e8f0; }
+  .nav-item.active { background: rgba(255,255,255,0.08); color: #fff; border-left-color: var(--accent); }
+  .nav-item .icon { font-size: 14px; width: 18px; text-align: center; }
+  .nav-item .chevron { margin-left: auto; font-size: 10px; color: #475569; }
+
+  .sub-menu { display: none; background: rgba(0,0,0,0.15); }
+  .sub-menu.open { display: block; }
+  .sub-item {
+    display: flex; align-items: center; gap: 8px; padding: 8px 14px 8px 40px;
+    color: #94a3b8; cursor: pointer; font-size: 12px; transition: all 0.15s;
+    border-left: 3px solid transparent;
+  }
+  .sub-item:hover { background: rgba(255,255,255,0.05); color: #e2e8f0; }
+  .sub-item.active { color: #fff; background: rgba(255,255,255,0.06); border-left-color: var(--accent); }
+  .sub-item .dot { width: 5px; height: 5px; border-radius: 50%; background: #475569; flex-shrink: 0; }
+  .sub-item.active .dot { background: var(--accent); }
+
+  .sidebar-logo {
+    margin-top: auto; padding: 12px 14px; border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .logo-circle { width: 32px; height: 32px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 900; color: #fff; font-size: 14px; }
+  .logo-text { color: #e2e8f0; font-size: 12px; font-weight: 600; line-height: 1.2; }
+  .logo-text small { color: #64748b; font-size: 10px; font-weight: 400; }
+
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  .page-header {
+    background: #fff; border-bottom: 1px solid var(--border); padding: 0 20px;
+    height: 44px; display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+  }
+  .page-header .breadcrumb { color: var(--muted); font-size: 12px; }
+  .page-header .breadcrumb span { color: var(--text); font-weight: 600; }
+  .page-header .badge {
+    background: var(--accent); color: #fff; border-radius: 3px;
+    padding: 1px 6px; font-size: 10px; font-weight: 600;
+  }
+
+  .tabs {
+    background: #fff; border-bottom: 1px solid var(--border);
+    display: flex; padding: 0 20px; gap: 0; flex-shrink: 0;
+  }
+  .tab {
+    padding: 10px 18px; font-size: 12px; font-weight: 500; cursor: pointer;
+    color: var(--muted); border-bottom: 2px solid transparent; transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--navy); border-bottom-color: var(--accent); font-weight: 600; }
+
+  .content { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+
+  .toolbar {
+    background: #fff; border: 1px solid var(--border); border-radius: 6px;
+    padding: 10px 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  }
+  .toolbar-group { display: flex; align-items: center; gap: 6px; }
+  .toolbar-divider { width: 1px; height: 22px; background: var(--border); margin: 0 4px; }
+
+  .btn {
+    display: flex; align-items: center; gap: 5px; padding: 5px 11px;
+    border-radius: 4px; font-size: 12px; cursor: pointer; border: 1px solid var(--border);
+    background: #fff; color: var(--text); transition: all 0.15s; font-family: inherit;
+  }
+  .btn:hover { background: var(--bg); }
+  .btn.primary { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .btn.primary:hover { background: var(--navy-light); }
+  .btn.danger { color: #dc2626; }
+  .btn.danger:hover { background: #fef2f2; border-color: #fca5a5; }
+
+  .search-input {
+    display: flex; align-items: center; gap: 6px;
+    border: 1px solid var(--border); border-radius: 4px; padding: 5px 10px;
+    background: #fff; min-width: 180px;
+  }
+  .search-input input { border: none; outline: none; font-size: 12px; font-family: inherit; color: var(--text); width: 100%; }
+  .search-input input::placeholder { color: #94a3b8; }
+
+  .filter-group { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+  .date-input {
+    border: 1px solid var(--border); border-radius: 4px; padding: 5px 10px;
+    font-size: 12px; font-family: inherit; color: var(--text); outline: none; background: #fff;
+  }
+  .filter-label { font-size: 11px; color: var(--muted); white-space: nowrap; }
+
+  .info-bar {
+    background: #fff; border: 1px solid var(--border); border-radius: 6px;
+    padding: 8px 14px; display: flex; align-items: center; gap: 16px; font-size: 12px;
+  }
+  .info-bar .stat { display: flex; align-items: center; gap: 6px; }
+  .stat-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .stat-dot.present { background: var(--present); }
+  .stat-dot.absent { background: var(--absent); }
+  .stat-dot.blocked { background: #f97316; }
+  .info-bar .owner { margin-left: auto; color: var(--muted); font-size: 11px; }
+
+  .table-wrap {
+    background: #fff; border: 1px solid var(--border); border-radius: 6px;
+    overflow: hidden; flex: 1;
+  }
+  .table-scroll { overflow-x: auto; overflow-y: auto; max-height: 100%; }
+
+  table { width: 100%; border-collapse: collapse; min-width: 900px; }
+  thead { position: sticky; top: 0; z-index: 10; }
+  thead tr { background: var(--navy); }
+  thead th {
+    padding: 9px 12px; text-align: left; font-size: 11px; font-weight: 600;
+    color: #cbd5e1; white-space: nowrap; border-right: 1px solid rgba(255,255,255,0.08);
+  }
+  thead th:last-child { border-right: none; }
+
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--row-hover); }
+  tbody tr.blocked-row { background: #fff7ed; }
+  tbody tr.blocked-row:hover { background: #ffedd5; }
+
+  td { padding: 9px 12px; font-size: 12px; vertical-align: top; border-right: 1px solid var(--border); }
+  td:last-child { border-right: none; }
+
+  .td-num { color: var(--muted); font-size: 11px; text-align: center; }
+  .td-date { white-space: nowrap; color: var(--muted); font-size: 11px; }
+  .td-day { font-weight: 600; color: var(--text); }
+  .badge-present { display: inline-flex; align-items: center; gap: 4px; background: #dcfce7; color: #15803d; border-radius: 3px; padding: 2px 7px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+  .badge-absent { display: inline-flex; align-items: center; gap: 4px; background: #fee2e2; color: #b91c1c; border-radius: 3px; padding: 2px 7px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+  .td-name { font-weight: 600; color: var(--navy); }
+  .td-team { color: var(--muted); font-size: 11px; }
+  .td-work { color: var(--text); line-height: 1.5; }
+  .td-work .ticket { color: #2563eb; font-weight: 600; }
+  .td-work .task { color: var(--muted); font-size: 11px; }
+  .td-blocked { color: #dc2626; font-size: 11px; }
+  .td-blocked.none { color: #94a3b8; font-style: italic; }
+
+  .table-footer {
+    background: #fff; border-top: 1px solid var(--border); padding: 8px 14px;
+    display: flex; align-items: center; gap: 12px; font-size: 12px; color: var(--muted);
+    border-radius: 0 0 6px 6px;
+  }
+  .pagination { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+  .page-btn {
+    width: 26px; height: 26px; border: 1px solid var(--border); border-radius: 3px;
+    display: flex; align-items: center; justify-content: center; cursor: pointer;
+    font-size: 11px; background: #fff; color: var(--text);
+  }
+  .page-btn.active { background: var(--navy); color: #fff; border-color: var(--navy); }
+
+  .report-toolbar {
+    background: #fff; border: 1px solid var(--border); border-radius: 6px;
+    padding: 14px 16px; display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap;
+  }
+  .form-group { display: flex; flex-direction: column; gap: 4px; }
+  .form-label { font-size: 11px; color: var(--muted); font-weight: 500; }
+  .form-control {
+    border: 1px solid var(--border); border-radius: 4px; padding: 6px 10px;
+    font-size: 12px; font-family: inherit; color: var(--text); outline: none;
+    background: #fff; min-width: 140px;
+  }
+
+  .report-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .report-card {
+    background: #fff; border: 1px solid var(--border); border-radius: 6px;
+    padding: 14px 16px; display: flex; flex-direction: column; gap: 4px;
+  }
+  .report-card .card-label { font-size: 11px; color: var(--muted); font-weight: 500; }
+  .report-card .card-value { font-size: 24px; font-weight: 700; color: var(--navy); }
+  .report-card .card-sub { font-size: 11px; color: var(--muted); }
+  .report-card.green .card-value { color: var(--present); }
+  .report-card.red .card-value { color: var(--absent); }
+  .report-card.orange .card-value { color: #f97316; }
+
+  .report-table-wrap { background: #fff; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .report-table-header {
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .report-table-title { font-size: 13px; font-weight: 600; color: var(--text); }
+
+  .hidden { display: none; }
+
+  .content::-webkit-scrollbar { width: 6px; }
+  .content::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+  .table-scroll::-webkit-scrollbar { height: 6px; width: 6px; }
+  .table-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-modules">
+    ☰ Modules <span class="sep">»</span> <span>ESS Portal</span>
+  </div>
+  <input class="topbar-search" type="text" placeholder="Search...">
+  <div class="topbar-right">
+    <span class="fy">FY: 2082-2083 | LY: 2082-2083</span>
+    <div class="topbar-avatar">PP</div>
+    <span class="topbar-user">Pareekshit Pokharel</span>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-top">
+      <span class="sidebar-top-label">Main Dashboard</span>
+    </div>
+    <div style="margin-top:4px;">
+      <div class="nav-item">🏠 Dashboard</div>
+      <div class="nav-item">⏰ Custom Menu <span class="chevron">›</span></div>
+      <div class="nav-item">📋 Quick Links <span class="chevron">›</span></div>
+      <div class="nav-item">✅ My Tasks <span class="chevron">›</span></div>
+      <div class="nav-item">📅 Attendance <span class="chevron">›</span></div>
+      <div class="nav-item">🌿 Leave and Fieldwork <span class="chevron">›</span></div>
+      <div class="nav-item">✈ Travel and TADA <span class="chevron">›</span></div>
+      <div class="nav-item">📝 Request and Claims <span class="chevron">›</span></div>
+      <div class="nav-item">⚡ Activity and Response <span class="chevron">›</span></div>
+      <div class="nav-item">🚪 Exit Process <span class="chevron">›</span></div>
+      <div class="nav-item">🎯 Goals and Appraisal <span class="chevron">›</span></div>
+      <div class="nav-item">📊 Employee Development <span class="chevron">›</span></div>
+      <div class="nav-item active">📈 Reporting <span class="chevron">›</span></div>
+      <div class="sub-menu open">
+        <div class="sub-item active" onclick="showTab('logbook')"><span class="dot"></span> Daily Log Book</div>
+        <div class="sub-item" onclick="showTab('reporting')"><span class="dot"></span> Work Log Report</div>
+      </div>
+    </div>
+    <div class="sidebar-logo">
+      <div class="logo-circle">N</div>
+      <div class="logo-text">Nimble<br><small>Infosys</small></div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="page-header">
+      <span class="breadcrumb">Reporting » <span id="page-title">Daily Log Book</span></span>
+      <span class="badge" id="page-badge">LOG BOOK</span>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" id="tab-logbook" onclick="showTab('logbook')">📋 Daily Log Book</div>
+      <div class="tab" id="tab-reporting" onclick="showTab('reporting')">📊 Work Log Report</div>
+    </div>
+
+    <!-- LOG BOOK TAB -->
+    <div class="content" id="page-logbook">
+      <div class="toolbar">
+        <div class="toolbar-group">
+          <button class="btn primary">+ Add Entry</button>
+          <button class="btn danger">🗑 Delete</button>
+          <button class="btn">⬇ Export</button>
+        </div>
+        <div class="toolbar-divider"></div>
+        <div class="search-input">
+          <input type="text" placeholder="Search by name or ticket...">
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">Date:</span>
+          <input type="date" class="date-input" value="2026-03-16">
+          <button class="btn">Filter</button>
+          <button class="btn">Reset</button>
+        </div>
+      </div>
+
+      <div class="info-bar">
+        <div class="stat"><span class="stat-dot present"></span> Present: <strong>8</strong></div>
+        <div class="stat"><span class="stat-dot absent"></span> Absent: <strong>4</strong></div>
+        <div class="stat"><span class="stat-dot blocked"></span> Blocked: <strong>2</strong></div>
+        <div style="font-size:11px;color:var(--muted);">Fill before standup ends at <strong>9:30 AM</strong> · Use ticket numbers in Done and Doing</div>
+        <div class="owner">Monitor: <strong>Prajwol</strong></div>
+      </div>
+
+      <div class="table-wrap">
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:36px;"><input type="checkbox"></th>
+                <th style="width:32px;">#</th>
+                <th>Date</th>
+                <th>Day</th>
+                <th>Name</th>
+                <th>Team</th>
+                <th>Attendance</th>
+                <th style="min-width:200px;">Done — Completed Yesterday</th>
+                <th style="min-width:200px;">Doing — Working on Today</th>
+                <th style="min-width:140px;">Blocked?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><input type="checkbox"></td><td class="td-num">1</td>
+                <td class="td-date">2026-03-16</td><td class="td-day">Monday</td>
+                <td class="td-name">Pareekshit Pokharel</td><td class="td-team">Developer</td>
+                <td><span class="badge-present">✓ PRESENT</span></td>
+                <td class="td-work"><div><span class="ticket">TKT-119</span> <span class="task">Completed daily report flow</span></div><div><span class="ticket">TKT-033</span> <span class="task">Fixed ABC integration bug</span></div></td>
+                <td class="td-work"><div><span class="ticket">TKT-201</span> <span class="task">Working on PM analytics dashboard</span></div></td>
+                <td class="td-blocked">Waiting on API spec from developer</td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td><td class="td-num">2</td>
+                <td class="td-date">2026-03-16</td><td class="td-day">Monday</td>
+                <td class="td-name">Prajwol Sigdel</td><td class="td-team">Developer</td>
+                <td><span class="badge-present">✓ PRESENT</span></td>
+                <td class="td-work"><div><span class="ticket">TKT-209</span> <span class="task">Appraisal form split sections</span></div></td>
+                <td class="td-work"><div><span class="ticket">TKT-210</span> <span class="task">Review code for deployment</span></div></td>
+                <td class="td-blocked none">—</td>
+              </tr>
+              <tr class="blocked-row">
+                <td><input type="checkbox"></td><td class="td-num">3</td>
+                <td class="td-date">2026-03-16</td><td class="td-day">Monday</td>
+                <td class="td-name">Asmita Gautam</td><td class="td-team">QA</td>
+                <td><span class="badge-present">✓ PRESENT</span></td>
+                <td class="td-work"><div><span class="ticket">TKT-205</span> <span class="task">Employee basic info bug test</span></div></td>
+                <td class="td-work"><div><span class="ticket">TKT-207</span> <span class="task">Retirement date display testing</span></div></td>
+                <td class="td-blocked">⚠ Blocked on dev build deployment</td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td><td class="td-num">4</td>
+                <td class="td-date">2026-03-16</td><td class="td-day">Monday</td>
+                <td class="td-name">Sudesh Chaudhary</td><td class="td-team">Developer</td>
+                <td><span class="badge-present">✓ PRESENT</span></td>
+                <td class="td-work"><div><span class="ticket">TKT-196</span> <span class="task">Public holiday attendance fix</span></div></td>
+                <td class="td-work"><div><span class="ticket">TKT-194</span> <span class="task">Bulk mail sending issue</span></div></td>
+                <td class="td-blocked none">—</td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td><td class="td-num">5</td>
+                <td class="td-date">2026-03-16</td><td class="td-day">Monday</td>
+                <td class="td-name">Gopal Chudal</td><td class="td-team">Developer</td>
+                <td><span class="badge-absent">✗ ABSENT</span></td>
+                <td class="td-work" style="color:#94a3b8;font-style:italic;">—</td>
+                <td class="td-work" style="color:#94a3b8;font-style:italic;">—</td>
+                <td class="td-blocked none">—</td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td><td class="td-num">6</td>
+                <td class="td-date">2026-03-16</td><td class="td-day">Monday</td>
+                <td class="td-name">Prashan Raj KC</td><td class="td-team">Developer</td>
+                <td><span class="badge-present">✓ PRESENT</span></td>
+                <td class="td-work"><div><span class="ticket">TKT-200</span> <span class="task">Handle null param error email</span></div></td>
+                <td class="td-work"><div><span class="ticket">TKT-201</span> <span class="task">Ticket analytics dashboard build</span></div></td>
+                <td class="td-blocked none">—</td>
+              </tr>
+              <tr class="blocked-row">
+                <td><input type="checkbox"></td><td class="td-num">7</td>
+                <td class="td-date">2026-03-16</td><td class="td-day">Monday</td>
+                <td class="td-name">Ram Sapkota</td><td class="td-team">CSD</td>
+                <td><span class="badge-present">✓ PRESENT</span></td>
+                <td class="td-work"><div><span class="ticket">TKT-195</span> <span class="task">Production analysis report</span></div></td>
+                <td class="td-work"><div><span class="ticket">TKT-198</span> <span class="task">Client follow-up on leave module</span></div></td>
+                <td class="td-blocked">⚠ Need clarification from client</td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td><td class="td-num">8</td>
+                <td class="td-date">2026-03-16</td><td class="td-day">Monday</td>
+                <td class="td-name">Gopi Krishna Pandey</td><td class="td-team">Deployment</td>
+                <td><span class="badge-absent">✗ ABSENT</span></td>
+                <td class="td-work" style="color:#94a3b8;font-style:italic;">—</td>
+                <td class="td-work" style="color:#94a3b8;font-style:italic;">—</td>
+                <td class="td-blocked none">—</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-footer">
+          <span>Show:</span>
+          <select class="date-input" style="min-width:80px;padding:3px 8px;"><option>Default</option><option>25</option><option>50</option></select>
+          <span style="margin-left:8px;">Showing <strong>1 to 8</strong> of <strong>12</strong> records</span>
+          <div class="pagination">
+            <div class="page-btn">«</div><div class="page-btn active">1</div><div class="page-btn">2</div><div class="page-btn">»</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REPORTING TAB -->
+    <div class="content hidden" id="page-reporting">
+      <div class="report-toolbar">
+        <div class="form-group"><label class="form-label">Start Date</label><input type="date" class="form-control" value="2026-03-10"></div>
+        <div class="form-group"><label class="form-label">End Date</label><input type="date" class="form-control" value="2026-03-16"></div>
+        <div class="form-group"><label class="form-label">Team</label><select class="form-control"><option>All Teams</option><option>Developer</option><option>QA</option><option>CSD</option><option>Deployment</option></select></div>
+        <div class="form-group"><label class="form-label">Member</label><select class="form-control"><option>All Members</option><option>Pareekshit Pokharel</option><option>Prajwol Sigdel</option><option>Asmita Gautam</option><option>Sudesh Chaudhary</option></select></div>
+        <div class="form-group"><label class="form-label">Attendance</label><select class="form-control"><option>All</option><option>Present</option><option>Absent</option></select></div>
+        <div class="form-group" style="margin-top:18px;"><button class="btn primary">📊 Generate Report</button></div>
+        <div class="form-group" style="margin-top:18px;"><button class="btn">⬇ Export</button></div>
+      </div>
+
+      <div class="report-cards">
+        <div class="report-card"><span class="card-label">Total Entries</span><span class="card-value">42</span><span class="card-sub">Mar 10 – Mar 16</span></div>
+        <div class="report-card green"><span class="card-label">Present Days</span><span class="card-value">34</span><span class="card-sub">81% attendance rate</span></div>
+        <div class="report-card red"><span class="card-label">Absent Days</span><span class="card-value">8</span><span class="card-sub">19% absence rate</span></div>
+        <div class="report-card orange"><span class="card-label">Blocked Reports</span><span class="card-value">6</span><span class="card-sub">Across 4 members</span></div>
+      </div>
+
+      <div class="report-table-wrap">
+        <div class="report-table-header">
+          <span class="report-table-title">Work Log Report — Mar 10 to Mar 16, 2026</span>
+          <div style="display:flex;gap:8px;"><button class="btn">⬇ Export CSV</button><button class="btn">🖨 Print</button></div>
+        </div>
+        <div class="report-table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>Date</th><th>Day</th><th>Name</th><th>Team</th><th>Attendance</th>
+                <th style="min-width:200px;">Done — Completed</th>
+                <th style="min-width:200px;">Doing — In Progress</th>
+                <th style="min-width:140px;">Blocked?</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td class="td-num">1</td><td class="td-date">2026-03-10</td><td class="td-day">Monday</td><td class="td-name">Pareekshit Pokharel</td><td class="td-team">Developer</td><td><span class="badge-present">✓ PRESENT</span></td><td class="td-work"><span class="ticket">TKT-115</span> <span class="task">SQL query review completed</span></td><td class="td-work"><span class="ticket">TKT-119</span> <span class="task">Daily report flow</span></td><td class="td-blocked none">—</td></tr>
+              <tr><td class="td-num">2</td><td class="td-date">2026-03-10</td><td class="td-day">Monday</td><td class="td-name">Asmita Gautam</td><td class="td-team">QA</td><td><span class="badge-present">✓ PRESENT</span></td><td class="td-work"><span class="ticket">TKT-200</span> <span class="task">Test cases written</span></td><td class="td-work"><span class="ticket">TKT-205</span> <span class="task">Employee info bug testing</span></td><td class="td-blocked">⚠ Build not deployed yet</td></tr>
+              <tr><td class="td-num">3</td><td class="td-date">2026-03-11</td><td class="td-day">Tuesday</td><td class="td-name">Sudesh Chaudhary</td><td class="td-team">Developer</td><td><span class="badge-absent">✗ ABSENT</span></td><td class="td-work" style="color:#94a3b8;font-style:italic;">—</td><td class="td-work" style="color:#94a3b8;font-style:italic;">—</td><td class="td-blocked none">—</td></tr>
+              <tr><td class="td-num">4</td><td class="td-date">2026-03-12</td><td class="td-day">Wednesday</td><td class="td-name">Prajwol Sigdel</td><td class="td-team">Developer</td><td><span class="badge-present">✓ PRESENT</span></td><td class="td-work"><span class="ticket">TKT-209</span> <span class="task">Appraisal form sections</span></td><td class="td-work"><span class="ticket">TKT-210</span> <span class="task">Deployment review</span></td><td class="td-blocked none">—</td></tr>
+              <tr><td class="td-num">5</td><td class="td-date">2026-03-13</td><td class="td-day">Thursday</td><td class="td-name">Ram Sapkota</td><td class="td-team">CSD</td><td><span class="badge-present">✓ PRESENT</span></td><td class="td-work"><span class="ticket">TKT-195</span> <span class="task">Production analysis</span></td><td class="td-work"><span class="ticket">TKT-198</span> <span class="task">Client follow-up</span></td><td class="td-blocked">⚠ Awaiting client response</td></tr>
+              <tr><td class="td-num">6</td><td class="td-date">2026-03-14</td><td class="td-day">Friday</td><td class="td-name">Gopal Chudal</td><td class="td-team">Deployment</td><td><span class="badge-absent">✗ ABSENT</span></td><td class="td-work" style="color:#94a3b8;font-style:italic;">—</td><td class="td-work" style="color:#94a3b8;font-style:italic;">—</td><td class="td-blocked none">—</td></tr>
+              <tr><td class="td-num">7</td><td class="td-date">2026-03-16</td><td class="td-day">Monday</td><td class="td-name">Pareekshit Pokharel</td><td class="td-team">Developer</td><td><span class="badge-present">✓ PRESENT</span></td><td class="td-work"><span class="ticket">TKT-119</span> <span class="task">Completed daily report</span></td><td class="td-work"><span class="ticket">TKT-201</span> <span class="task">Analytics dashboard</span></td><td class="td-blocked">Waiting on API spec</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="table-footer">
+          <span>Showing <strong>1 to 7</strong> of <strong>42</strong> records</span>
+          <div class="pagination"><div class="page-btn">«</div><div class="page-btn active">1</div><div class="page-btn">2</div><div class="page-btn">3</div><div class="page-btn">»</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function showTab(tab) {
+    document.querySelectorAll('.content').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.sub-item').forEach(el => el.classList.remove('active'));
+    document.getElementById('page-' + tab).classList.remove('hidden');
+    document.getElementById('tab-' + tab).classList.add('active');
+    const titles = { logbook: 'Daily Log Book', reporting: 'Work Log Report' };
+    const badges = { logbook: 'LOG BOOK', reporting: 'REPORT' };
+    document.getElementById('page-title').textContent = titles[tab];
+    document.getElementById('page-badge').textContent = badges[tab];
+    document.querySelectorAll('.sub-item').forEach(el => {
+      if ((tab === 'logbook' && el.textContent.includes('Log Book')) ||
+          (tab === 'reporting' && el.textContent.includes('Report'))) {
+        el.classList.add('active');
+      }
+    });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nimble Infosys - Ticket View</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --navy: #1a2b4a; --navy-light: #243555; --accent: #f97316;
+    --text: #1e293b; --muted: #64748b; --border: #e2e8f0;
+    --bg: #f8fafc; --sidebar-w: 210px;
+  }
+  body { font-family: 'Segoe UI', sans-serif; font-size: 13px; background: #fff; color: var(--text); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+  .topbar { height: 46px; background: var(--navy); display: flex; align-items: center; padding: 0 14px; gap: 12px; flex-shrink: 0; }
+  .topbar-modules { color: #94a3b8; font-size: 12px; display: flex; align-items: center; gap: 5px; }
+  .topbar-modules span { color: #fff; }
+  .topbar-search { flex: 1; max-width: 320px; margin: 0 auto; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); border-radius: 4px; padding: 5px 12px; color: #fff; font-size: 12px; outline: none; }
+  .topbar-search::placeholder { color: #94a3b8; }
+  .topbar-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+  .topbar-avatar { width: 27px; height: 27px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 10px; color: var(--navy); }
+  .topbar-user { color: #e2e8f0; font-size: 12px; }
+  .topbar-fy { color: #cbd5e1; font-size: 11px; }
+  .layout { display: flex; flex: 1; overflow: hidden; }
+  .sidebar { width: var(--sidebar-w); background: var(--navy); flex-shrink: 0; overflow-y: auto; display: flex; flex-direction: column; padding-bottom: 12px; }
+  .sidebar::-webkit-scrollbar { width: 3px; }
+  .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); }
+  .sidebar-top { padding: 9px 12px; border-bottom: 1px solid rgba(255,255,255,0.07); display: flex; align-items: center; gap: 7px; }
+  .sidebar-top span { color: #cbd5e1; font-size: 12px; }
+  .nav-item { display: flex; align-items: center; gap: 9px; padding: 8px 13px; color: #94a3b8; font-size: 12px; cursor: pointer; border-left: 3px solid transparent; }
+  .nav-item:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+  .nav-item.open { color: #fff; background: rgba(255,255,255,0.05); }
+  .nav-item .ch { margin-left: auto; font-size: 10px; color: #475569; }
+  .sub-menu { background: rgba(0,0,0,0.12); }
+  .sub-item { display: flex; align-items: center; gap: 7px; padding: 7px 13px 7px 34px; color: #94a3b8; font-size: 12px; cursor: pointer; border-left: 3px solid transparent; }
+  .sub-item:hover { color: #e2e8f0; background: rgba(255,255,255,0.03); }
+  .sub-item.active { color: #fff; border-left-color: var(--accent); background: rgba(255,255,255,0.05); }
+  .sub-item .dot { width: 5px; height: 5px; border-radius: 50%; background: #475569; flex-shrink: 0; }
+  .sub-item.active .dot { background: var(--accent); }
+  .sidebar-logo { margin-top: auto; padding: 10px 13px; border-top: 1px solid rgba(255,255,255,0.07); display: flex; align-items: center; gap: 9px; }
+  .logo-c { width: 30px; height: 30px; background: var(--accent); border-radius: 7px; display: flex; align-items: center; justify-content: center; font-weight: 900; color: #fff; font-size: 13px; }
+  .logo-t { color: #e2e8f0; font-size: 11px; font-weight: 600; line-height: 1.3; }
+  .logo-t small { color: #64748b; font-size: 10px; font-weight: 400; }
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #fff; }
+  .tabbar { border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; flex-shrink: 0; background: #fff; }
+  .tab { padding: 10px 16px; font-size: 12px; font-weight: 500; cursor: pointer; color: var(--muted); border-bottom: 2px solid transparent; white-space: nowrap; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--navy); border-bottom-color: var(--accent); font-weight: 600; }
+  .actionbar { background: #f8fafc; border-bottom: 1px solid var(--border); padding: 7px 20px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; flex-shrink: 0; }
+  .action-btn { display: flex; align-items: center; gap: 5px; padding: 5px 11px; border: 1px solid var(--border); border-radius: 3px; font-size: 11px; cursor: pointer; background: #fff; color: var(--text); font-family: inherit; white-space: nowrap; }
+  .action-btn:hover { background: var(--bg); }
+  .ticket-body { flex: 1; overflow-y: auto; display: flex; }
+  .ticket-body::-webkit-scrollbar { width: 6px; }
+  .ticket-body::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+  .ticket-left { flex: 1; padding: 24px 28px; overflow-y: auto; border-right: 1px solid var(--border); }
+  .ticket-left::-webkit-scrollbar { width: 5px; }
+  .ticket-left::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+  .ticket-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 16px; line-height: 1.4; }
+  .ticket-title .ticket-id { color: var(--muted); font-weight: 400; font-size: 14px; }
+  .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 24px; margin-bottom: 20px; }
+  .meta-row { display: flex; align-items: baseline; gap: 6px; font-size: 12px; }
+  .meta-key { color: var(--muted); font-weight: 600; white-space: nowrap; min-width: 110px; }
+  .meta-val { color: var(--text); }
+  .meta-val.badge { display: inline-flex; align-items: center; gap: 4px; padding: 1px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; }
+  .badge-normal  { background: #f1f5f9; color: #475569; }
+  .badge-backlog { background: #f1f5f9; color: #64748b; }
+  .badge-watcher { background: #e2e8f0; color: #1e293b; font-size: 10px; padding: 2px 8px; border-radius: 3px; }
+  .section { margin-bottom: 24px; }
+  .section-title { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+  .desc-content { font-size: 12px; line-height: 1.8; color: var(--text); }
+  .desc-content ul { padding-left: 20px; }
+  .desc-content li { margin-bottom: 4px; }
+  .subtask-section { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 24px; }
+  .subtask-header { padding: 10px 14px; background: #f8fafc; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+  .subtask-header-title { font-size: 13px; font-weight: 700; color: var(--text); flex: 1; display: flex; align-items: center; gap: 6px; }
+  .subtask-count { background: #e2e8f0; color: #475569; font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 10px; }
+  .subtask-header-actions { display: flex; align-items: center; gap: 6px; }
+  .st-icon-btn { width: 26px; height: 26px; border: 1px solid var(--border); border-radius: 4px; background: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--muted); }
+  .st-icon-btn:hover { background: var(--bg); }
+  .st-add-btn { display: flex; align-items: center; gap: 4px; padding: 4px 10px; background: var(--navy); color: #fff; border: none; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; }
+  .progress-wrap { padding: 10px 14px; border-bottom: 1px solid var(--border); background: #fff; }
+  .progress-bar-track { height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden; display: flex; }
+  .progress-done   { background: #16a34a; height: 100%; }
+  .progress-active { background: #2563eb; height: 100%; }
+  .progress-todo   { background: #d1d5db; height: 100%; }
+  .progress-labels { display: flex; align-items: center; gap: 14px; margin-top: 6px; font-size: 11px; color: var(--muted); }
+  .progress-labels .pct { margin-left: auto; font-weight: 700; color: var(--text); }
+  .plabel { display: flex; align-items: center; gap: 4px; }
+  .plabel-dot { width: 8px; height: 8px; border-radius: 2px; }
+  .subtask-table { width: 100%; border-collapse: collapse; }
+  .subtask-table thead tr { background: #f8fafc; }
+  .subtask-table th { padding: 7px 12px; text-align: left; font-size: 11px; font-weight: 700; color: var(--muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .subtask-table tbody tr { border-bottom: 1px solid var(--border); }
+  .subtask-table tbody tr:last-child { border-bottom: none; }
+  .subtask-table tbody tr:hover { background: #f8fafc; }
+  .subtask-table td { padding: 9px 12px; font-size: 12px; vertical-align: middle; }
+  .st-work { display: flex; align-items: center; gap: 7px; }
+  .st-id { color: #2563eb; font-weight: 600; font-size: 11px; white-space: nowrap; cursor: pointer; }
+  .st-id:hover { text-decoration: underline; }
+  .pri { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 600; }
+  .pri-normal { color: #64748b; }
+  .pri-high   { color: #dc2626; }
+  .assignee { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+  .av { width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; flex-shrink: 0; }
+  .av-blue   { background: #bfdbfe; color: #1d4ed8; }
+  .av-green  { background: #bbf7d0; color: #15803d; }
+  .av-orange { background: #fed7aa; color: #c2410c; }
+  .av-gray   { background: #e2e8f0; color: #64748b; }
+  .st-status { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; border: none; font-family: inherit; }
+  .st-status .arr { font-size: 9px; margin-left: 2px; }
+  .status-done     { background: #dcfce7; color: #15803d; }
+  .status-progress { background: #dbeafe; color: #1d4ed8; }
+  .status-todo     { background: #f1f5f9; color: #475569; }
+  .status-review   { background: #fef9c3; color: #854d0e; }
+  .status-blocked  { background: #fee2e2; color: #b91c1c; }
+  .add-subtask-row { padding: 10px 14px; border-top: 1px solid var(--border); background: #f8fafc; display: flex; align-items: center; gap: 8px; }
+  .add-subtask-row.hidden { display: none; }
+  .add-st-input { flex: 1; border: 1px solid #93c5fd; border-radius: 4px; padding: 7px 12px; font-size: 12px; font-family: inherit; outline: none; background: #fff; }
+  .add-st-type { border: 1px solid var(--border); border-radius: 4px; padding: 6px 10px; font-size: 12px; font-family: inherit; color: var(--muted); background: #fff; outline: none; }
+  .add-st-hint { font-size: 11px; color: var(--muted); margin-right: 8px; }
+  .btn-sm { padding: 5px 12px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid var(--border); font-family: inherit; }
+  .btn-sm.primary { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .btn-sm.ghost { background: #fff; color: var(--muted); }
+  .ticket-right { width: 280px; flex-shrink: 0; padding: 20px 18px; overflow-y: auto; background: #fafafa; }
+  .ticket-right::-webkit-scrollbar { width: 4px; }
+  .ticket-right::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+  .detail-section { margin-bottom: 20px; }
+  .detail-section-title { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+  .detail-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; font-size: 12px; }
+  .detail-key { color: var(--muted); min-width: 90px; flex-shrink: 0; }
+  .detail-val { color: var(--text); flex: 1; }
+  .detail-val .badge { display: inline-flex; padding: 2px 7px; border-radius: 3px; font-size: 11px; font-weight: 600; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+  .comment-item { display: flex; gap: 8px; margin-bottom: 12px; }
+  .comment-av { width: 26px; height: 26px; border-radius: 50%; background: #bfdbfe; color: #1d4ed8; display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .comment-body { flex: 1; }
+  .comment-meta { font-size: 11px; color: var(--muted); margin-bottom: 3px; }
+  .comment-meta strong { color: var(--text); }
+  .comment-text { font-size: 12px; line-height: 1.5; color: var(--text); background: #f1f5f9; padding: 7px 10px; border-radius: 4px; }
+  .status-dropdown { position: absolute; z-index: 100; background: #fff; border: 1px solid var(--border); border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,0.12); min-width: 160px; padding: 4px; display: none; }
+  .status-dropdown.open { display: block; }
+  .sd-item { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+  .sd-item:hover { background: var(--bg); }
+  .sd-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+  .relative { position: relative; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-modules">☰ Modules <span style="color:#475569;">»</span> <span>ESS Portal</span></div>
+  <input class="topbar-search" type="text" placeholder="Search...">
+  <div class="topbar-right">
+    <span class="topbar-fy">FY: 2082-2083 | LY: 2082-2083</span>
+    <div class="topbar-avatar">PP</div>
+    <span class="topbar-user">Pareekshit Pokharel</span>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sidebar-top"><span>Main Dashboard</span></div>
+    <div class="nav-item">🏠 Dashboard</div>
+    <div class="nav-item">⏰ Custom Menu <span class="ch">›</span></div>
+    <div class="nav-item">📋 Quick Links <span class="ch">›</span></div>
+    <div class="nav-item open">✅ My Tasks <span class="ch" style="transform:rotate(90deg)">›</span></div>
+    <div class="sub-menu">
+      <div class="sub-item"><span class="dot"></span> Dashboard</div>
+      <div class="sub-item active"><span class="dot"></span> Manage Task</div>
+      <div class="sub-item"><span class="dot"></span> Milestone</div>
+      <div class="sub-item"><span class="dot"></span> Kanban Board</div>
+      <div class="sub-item"><span class="dot"></span> Task Comments</div>
+      <div class="sub-item"><span class="dot"></span> Workspace</div>
+      <div class="sub-item"><span class="dot"></span> My Calendar</div>
+    </div>
+    <div class="nav-item">📅 Attendance <span class="ch">›</span></div>
+    <div class="nav-item">🌿 Leave and Fieldwork <span class="ch">›</span></div>
+    <div class="nav-item">✈ Travel and TADA <span class="ch">›</span></div>
+    <div class="nav-item">📝 Request and Claims <span class="ch">›</span></div>
+    <div class="nav-item">⚡ Activity and Response <span class="ch">›</span></div>
+    <div class="nav-item">🚪 Exit Process <span class="ch">›</span></div>
+    <div class="nav-item">🎯 Goals and Appraisal <span class="ch">›</span></div>
+    <div class="nav-item">📊 Employee Development <span class="ch">›</span></div>
+    <div class="sidebar-logo">
+      <div class="logo-c">N</div>
+      <div class="logo-t">Nimble<br><small>Infosys</small></div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="tabbar">
+      <div class="tab active">Tasks</div>
+      <div class="tab">Task Documents</div>
+      <div class="tab">↩ Back</div>
+    </div>
+
+    <div class="actionbar">
+      <button class="action-btn">✏ Status Change</button>
+      <button class="action-btn">＋ Add Comment</button>
+      <button class="action-btn">✏ Edit Task</button>
+      <button class="action-btn">＋ Add Child Task</button>
+      <button class="action-btn">🔗 Link Task</button>
+      <button class="action-btn">🔗 Link Milestone</button>
+      <button class="action-btn">✂ Copy Link</button>
+      <button class="action-btn">More Options ▾</button>
+    </div>
+
+    <div class="ticket-body">
+      <div class="ticket-left">
+        <div class="ticket-title">
+          Development : <span class="ticket-id">#33208:</span> PM Requirements for Task Engagement Status and Entry form for Daily Reporting
+        </div>
+
+        <div class="meta-grid">
+          <div class="meta-row"><span class="meta-key">Added By</span><span class="meta-val">Khem Raj Ghimire at 17/03/2026 04:07:08 PM</span></div>
+          <div class="meta-row"><span class="meta-key">Estimated Hour</span><span class="meta-val">00:00</span></div>
+          <div class="meta-row"><span class="meta-key">Priority</span><span class="meta-val"><span class="meta-val badge badge-normal">Normal</span></span></div>
+          <div class="meta-row"><span class="meta-key">Story Point</span><span class="meta-val">0</span></div>
+          <div class="meta-row"><span class="meta-key">Status</span><span class="meta-val"><span class="meta-val badge badge-backlog">Backlog</span></span></div>
+          <div class="meta-row"><span class="meta-key">Spent Hour</span><span class="meta-val">00:00</span></div>
+          <div class="meta-row"><span class="meta-key">Assignee</span><span class="meta-val">Pareekshit Pokharel</span></div>
+          <div class="meta-row"><span class="meta-key">Start Date</span><span class="meta-val">17 Mar 2026</span></div>
+          <div class="meta-row"><span class="meta-key">Watcher Groups</span><span class="meta-val"><span class="badge-watcher">Core Feature Enhancement, Analyst Team</span></span></div>
+          <div class="meta-row"><span class="meta-key">Due Date</span><span class="meta-val">—</span></div>
+          <div class="meta-row"><span class="meta-key">Project Name</span><span class="meta-val">Project Management (PMS)</span></div>
+          <div class="meta-row"><span class="meta-key">Main Activity</span><span class="meta-val">Requirement Study</span></div>
+          <div class="meta-row"><span class="meta-key">Category</span><span class="meta-val">Development</span></div>
+        </div>
+
+        <hr class="divider">
+
+        <!-- SUBTASKS -->
+        <div class="subtask-section">
+          <div class="subtask-header">
+            <div class="subtask-header-title">
+              ☰ Subtasks
+              <span class="subtask-count" id="subtask-count">3</span>
+            </div>
+            <div class="subtask-header-actions">
+              <button class="st-icon-btn">⋯</button>
+              <button class="st-icon-btn">⊞</button>
+              <button class="st-add-btn" onclick="toggleAddRow()">＋ Add Subtask</button>
+            </div>
+          </div>
+
+          <div class="progress-wrap">
+            <div class="progress-bar-track">
+              <div class="progress-done"   id="bar-done"   style="width:33%"></div>
+              <div class="progress-active" id="bar-active" style="width:33%"></div>
+              <div class="progress-todo"   id="bar-todo"   style="width:34%"></div>
+            </div>
+            <div class="progress-labels">
+              <div class="plabel"><div class="plabel-dot" style="background:#16a34a;"></div> Done: <strong id="lbl-done">1</strong></div>
+              <div class="plabel"><div class="plabel-dot" style="background:#2563eb;"></div> In Progress: <strong id="lbl-active">1</strong></div>
+              <div class="plabel"><div class="plabel-dot" style="background:#d1d5db;"></div> To Do: <strong id="lbl-todo">1</strong></div>
+              <div class="pct" id="lbl-pct">33% Done</div>
+            </div>
+          </div>
+
+          <table class="subtask-table">
+            <thead>
+              <tr>
+                <th style="width:36px;"><input type="checkbox" id="check-all" onchange="toggleAll(this)"></th>
+                <th style="min-width:280px;">Work</th>
+                <th style="width:110px;">Priority</th>
+                <th style="width:150px;">Assignee</th>
+                <th style="width:140px;">Status</th>
+              </tr>
+            </thead>
+            <tbody id="subtask-tbody">
+              <tr data-status="done">
+                <td><input type="checkbox" class="st-check"></td>
+                <td><div class="st-work"><span class="st-id">#33210</span><span class="st-title">Analyse requirement and prepare enhancement document</span></div></td>
+                <td><span class="pri pri-normal">= Normal</span></td>
+                <td><div class="assignee"><div class="av av-blue">PP</div> Pareekshit P.</div></td>
+                <td class="relative">
+                  <button class="st-status status-done" onclick="toggleStatus(this)">✓ DONE <span class="arr">▾</span></button>
+                  <div class="status-dropdown">
+                    <div class="sd-item" onclick="setStatus(this,'done')"><div class="sd-dot" style="background:#16a34a;"></div>Done</div>
+                    <div class="sd-item" onclick="setStatus(this,'progress')"><div class="sd-dot" style="background:#2563eb;"></div>In Progress</div>
+                    <div class="sd-item" onclick="setStatus(this,'review')"><div class="sd-dot" style="background:#ca8a04;"></div>In Review</div>
+                    <div class="sd-item" onclick="setStatus(this,'todo')"><div class="sd-dot" style="background:#94a3b8;"></div>To Do</div>
+                    <div class="sd-item" onclick="setStatus(this,'blocked')"><div class="sd-dot" style="background:#dc2626;"></div>Blocked</div>
+                  </div>
+                </td>
+              </tr>
+              <tr data-status="progress">
+                <td><input type="checkbox" class="st-check"></td>
+                <td><div class="st-work"><span class="st-id">#33211</span><span class="st-title">Design UI layout for task engagement status view</span></div></td>
+                <td><span class="pri pri-high">↑ High</span></td>
+                <td><div class="assignee"><div class="av av-green">PS</div> Prajwol S.</div></td>
+                <td class="relative">
+                  <button class="st-status status-progress" onclick="toggleStatus(this)">⏳ IN PROGRESS <span class="arr">▾</span></button>
+                  <div class="status-dropdown">
+                    <div class="sd-item" onclick="setStatus(this,'done')"><div class="sd-dot" style="background:#16a34a;"></div>Done</div>
+                    <div class="sd-item" onclick="setStatus(this,'progress')"><div class="sd-dot" style="background:#2563eb;"></div>In Progress</div>
+                    <div class="sd-item" onclick="setStatus(this,'review')"><div class="sd-dot" style="background:#ca8a04;"></div>In Review</div>
+                    <div class="sd-item" onclick="setStatus(this,'todo')"><div class="sd-dot" style="background:#94a3b8;"></div>To Do</div>
+                    <div class="sd-item" onclick="setStatus(this,'blocked')"><div class="sd-dot" style="background:#dc2626;"></div>Blocked</div>
+                  </div>
+                </td>
+              </tr>
+              <tr data-status="todo">
+                <td><input type="checkbox" class="st-check"></td>
+                <td><div class="st-work"><span class="st-id">#33212</span><span class="st-title">Build daily reporting entry form with tab-to-next-row</span></div></td>
+                <td><span class="pri pri-normal">= Normal</span></td>
+                <td><div class="assignee"><div class="av av-gray">—</div> Unassigned</div></td>
+                <td class="relative">
+                  <button class="st-status status-todo" onclick="toggleStatus(this)">○ TO DO <span class="arr">▾</span></button>
+                  <div class="status-dropdown">
+                    <div class="sd-item" onclick="setStatus(this,'done')"><div class="sd-dot" style="background:#16a34a;"></div>Done</div>
+                    <div class="sd-item" onclick="setStatus(this,'progress')"><div class="sd-dot" style="background:#2563eb;"></div>In Progress</div>
+                    <div class="sd-item" onclick="setStatus(this,'review')"><div class="sd-dot" style="background:#ca8a04;"></div>In Review</div>
+                    <div class="sd-item" onclick="setStatus(this,'todo')"><div class="sd-dot" style="background:#94a3b8;"></div>To Do</div>
+                    <div class="sd-item" onclick="setStatus(this,'blocked')"><div class="sd-dot" style="background:#dc2626;"></div>Blocked</div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="add-subtask-row hidden" id="add-subtask-row">
+            <span class="add-st-hint">What needs to be done?</span>
+            <input class="add-st-input" type="text" id="new-subtask-input" placeholder="Enter subtask title..." onkeydown="handleAddKey(event)">
+            <select class="add-st-type" id="new-subtask-assignee">
+              <option value="">Unassigned</option>
+              <option value="PP">Pareekshit Pokharel</option>
+              <option value="PS">Prajwol Sigdel</option>
+              <option value="AG">Asmita Gautam</option>
+            </select>
+            <div style="display:flex;gap:6px;">
+              <button class="btn-sm primary" onclick="addSubtask()">Save</button>
+              <button class="btn-sm ghost" onclick="toggleAddRow()">Cancel</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Description :</div>
+          <div class="desc-content">
+            <p><strong>PM Requirements:</strong></p>
+            <ul>
+              <li><strong>TODO:</strong><ul><li>Analyse the requirement and enhance document for development.</li></ul></li>
+              <li><strong>Task Engagement Status:</strong><ul><li>Purpose: To analyse unit wise engagement for the task.</li><li>Requirement: Engagement of Stage Wise Users — Analysis Time, Development Time, QA Time, Release Time.</li></ul></li>
+              <li><strong>Dedicated UI for daily Reporting:</strong><ul><li>Purpose: Record activity wise independent record, time and customer tagging.</li><li>Requirement: Develop an independent UI for daily activities reporting.</li></ul></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="section">
+          <div class="section-title">Comments</div>
+          <div class="comment-item">
+            <div class="comment-av">PP</div>
+            <div class="comment-body">
+              <div class="comment-meta"><strong>Pareekshit Pokharel</strong> · 16 Mar 2026, 2:24 PM</div>
+              <div class="comment-text">Started analysing the requirement doc. Will share the enhanced version by EOD.</div>
+            </div>
+          </div>
+          <div class="comment-item">
+            <div class="comment-av" style="background:#bbf7d0;color:#15803d;">PS</div>
+            <div class="comment-body">
+              <div class="comment-meta"><strong>Prajwol Sigdel</strong> · 16 Mar 2026, 3:10 PM</div>
+              <div class="comment-text">UI layout draft is in progress. Will share Figma link once first version is ready.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ticket-right">
+        <div class="detail-section">
+          <div class="detail-section-title">Details</div>
+          <div class="detail-row"><span class="detail-key">Status</span><span class="detail-val"><span class="badge badge-backlog">Backlog</span></span></div>
+          <div class="detail-row"><span class="detail-key">Priority</span><span class="detail-val"><span class="badge badge-normal">= Normal</span></span></div>
+          <div class="detail-row"><span class="detail-key">Assignee</span><span class="detail-val"><div class="assignee"><div class="av av-blue" style="width:20px;height:20px;font-size:8px;">PP</div> Pareekshit P.</div></span></div>
+          <div class="detail-row"><span class="detail-key">Start Date</span><span class="detail-val">17 Mar 2026</span></div>
+          <div class="detail-row"><span class="detail-key">Due Date</span><span class="detail-val" style="color:#94a3b8;">Not set</span></div>
+          <div class="detail-row"><span class="detail-key">Est. Hours</span><span class="detail-val">00:00</span></div>
+          <div class="detail-row"><span class="detail-key">Story Point</span><span class="detail-val">0</span></div>
+          <div class="detail-row"><span class="detail-key">% Done</span><span class="detail-val">
+            <div style="display:flex;align-items:center;gap:6px;">
+              <div style="flex:1;height:5px;background:#e2e8f0;border-radius:3px;overflow:hidden;"><div style="width:33%;height:100%;background:#16a34a;"></div></div>
+              <span>33%</span>
+            </div>
+          </span></div>
+        </div>
+        <hr class="divider">
+        <div class="detail-section">
+          <div class="detail-section-title">Subtask Summary</div>
+          <div class="detail-row"><span class="detail-key">Total</span><span class="detail-val" id="right-total">3</span></div>
+          <div class="detail-row"><span class="detail-key">Done</span><span class="detail-val" style="color:#16a34a;" id="right-done">1</span></div>
+          <div class="detail-row"><span class="detail-key">In Progress</span><span class="detail-val" style="color:#2563eb;" id="right-progress">1</span></div>
+          <div class="detail-row"><span class="detail-key">To Do</span><span class="detail-val" style="color:#64748b;" id="right-todo">1</span></div>
+        </div>
+        <hr class="divider">
+        <div class="detail-section">
+          <div class="detail-section-title">Project</div>
+          <div class="detail-row"><span class="detail-key">Name</span><span class="detail-val">Project Management (PMS)</span></div>
+          <div class="detail-row"><span class="detail-key">Activity</span><span class="detail-val">Requirement Study</span></div>
+          <div class="detail-row"><span class="detail-key">Category</span><span class="detail-val">Development</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let addRowOpen = false;
+  let subtaskCounter = 33213;
+  const statusMap = {
+    done:     { label: '✓ DONE',        cls: 'status-done' },
+    progress: { label: '⏳ IN PROGRESS', cls: 'status-progress' },
+    review:   { label: '⟳ IN REVIEW',   cls: 'status-review' },
+    todo:     { label: '○ TO DO',        cls: 'status-todo' },
+    blocked:  { label: '✗ BLOCKED',     cls: 'status-blocked' },
+  };
+  function toggleStatus(btn) {
+    const dd = btn.nextElementSibling;
+    document.querySelectorAll('.status-dropdown').forEach(d => { if(d !== dd) d.classList.remove('open'); });
+    dd.classList.toggle('open');
+  }
+  function setStatus(item, statusKey) {
+    const dd = item.closest('.status-dropdown');
+    const btn = dd.previousElementSibling;
+    const row = btn.closest('tr');
+    const s = statusMap[statusKey];
+    btn.className = 'st-status ' + s.cls;
+    btn.innerHTML = s.label + ' <span class="arr">▾</span>';
+    row.dataset.status = statusKey;
+    dd.classList.remove('open');
+    updateProgress();
+  }
+  function toggleAddRow() {
+    addRowOpen = !addRowOpen;
+    document.getElementById('add-subtask-row').classList.toggle('hidden', !addRowOpen);
+    if(addRowOpen) document.getElementById('new-subtask-input').focus();
+  }
+  function handleAddKey(e) {
+    if(e.key === 'Enter') addSubtask();
+    if(e.key === 'Escape') toggleAddRow();
+  }
+  function addSubtask() {
+    const input = document.getElementById('new-subtask-input');
+    const sel = document.getElementById('new-subtask-assignee');
+    const title = input.value.trim();
+    if(!title) return;
+    const code = sel.value;
+    const name = sel.options[sel.selectedIndex].text;
+    const avColors = { PP:'av-blue', PS:'av-green', AG:'av-orange', '':'av-gray' };
+    const avCls = avColors[code] || 'av-gray';
+    const avLabel = code || '—';
+    const displayName = code ? name.split(' ')[0] + ' ' + name.split(' ')[1]?.[0] + '.' : 'Unassigned';
+    const id = '#' + subtaskCounter++;
+    const tbody = document.getElementById('subtask-tbody');
+    const tr = document.createElement('tr');
+    tr.dataset.status = 'todo';
+    tr.innerHTML = `<td><input type="checkbox" class="st-check"></td><td><div class="st-work"><span class="st-id">${id}</span><span class="st-title">${title}</span></div></td><td><span class="pri pri-normal">= Normal</span></td><td><div class="assignee"><div class="av ${avCls}">${avLabel}</div> ${displayName}</div></td><td class="relative"><button class="st-status status-todo" onclick="toggleStatus(this)">○ TO DO <span class="arr">▾</span></button><div class="status-dropdown"><div class="sd-item" onclick="setStatus(this,'done')"><div class="sd-dot" style="background:#16a34a;"></div>Done</div><div class="sd-item" onclick="setStatus(this,'progress')"><div class="sd-dot" style="background:#2563eb;"></div>In Progress</div><div class="sd-item" onclick="setStatus(this,'review')"><div class="sd-dot" style="background:#ca8a04;"></div>In Review</div><div class="sd-item" onclick="setStatus(this,'todo')"><div class="sd-dot" style="background:#94a3b8;"></div>To Do</div><div class="sd-item" onclick="setStatus(this,'blocked')"><div class="sd-dot" style="background:#dc2626;"></div>Blocked</div></div></td>`;
+    tbody.appendChild(tr);
+    input.value = '';
+    sel.value = '';
+    updateProgress();
+    toggleAddRow();
+  }
+  function updateProgress() {
+    const rows = document.querySelectorAll('#subtask-tbody tr');
+    let done=0, active=0, todo=0;
+    rows.forEach(r => {
+      const s = r.dataset.status;
+      if(s==='done') done++;
+      else if(s==='progress'||s==='review') active++;
+      else todo++;
+    });
+    const total = rows.length;
+    const pct = total ? Math.round(done/total*100) : 0;
+    document.getElementById('bar-done').style.width   = (done/total*100)+'%';
+    document.getElementById('bar-active').style.width = (active/total*100)+'%';
+    document.getElementById('bar-todo').style.width   = (todo/total*100)+'%';
+    document.getElementById('lbl-done').textContent   = done;
+    document.getElementById('lbl-active').textContent = active;
+    document.getElementById('lbl-todo').textContent   = todo;
+    document.getElementById('lbl-pct').textContent    = pct+'% Done';
+    document.getElementById('subtask-count').textContent = total;
+    document.getElementById('right-total').textContent    = total;
+    document.getElementById('right-done').textContent     = done;
+    document.getElementById('right-progress').textContent = active;
+    document.getElementById('right-todo').textContent     = todo;
+  }
+  function toggleAll(cb) { document.querySelectorAll('.st-check').forEach(c => c.checked = cb.checked); }
+  document.addEventListener('click', e => {
+    if(!e.target.closest('.relative')) document.querySelectorAll('.status-dropdown').forEach(d => d.classList.remove('open'));
+  });
+</script>
+</body>
+</html>
