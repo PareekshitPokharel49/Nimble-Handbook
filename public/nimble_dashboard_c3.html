@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nimble Infosys - Project Wise Dashboard</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root {
+    --navy:#1a2b4a; --navy-l:#243555; --accent:#f97316;
+    --text:#1e293b; --muted:#64748b; --border:#e2e8f0; --bg:#f8fafc;
+    --urgent:#dc2626;    --urgent-bg:#fee2e2;
+    --immediate:#f97316; --immediate-bg:#ffedd5;
+    --high:#eab308;      --high-bg:#fef9c3;
+    --normal:#2563eb;    --normal-bg:#dbeafe;
+    --low:#94a3b8;       --low-bg:#f1f5f9;
+    --pass:#16a34a;      --pass-bg:#dcfce7;
+    --fail:#dc2626;      --fail-bg:#fee2e2;
+    --over:#c55a11;      --over-bg:#ffedd5;
+  }
+  body { font-family:'Segoe UI',sans-serif; font-size:13px; background:var(--bg); color:var(--text); display:flex; flex-direction:column; height:100vh; overflow:hidden; }
+
+  /* TOPBAR */
+  .topbar { height:46px; background:var(--navy); display:flex; align-items:center; padding:0 14px; gap:12px; flex-shrink:0; }
+  .tb-mod { color:#94a3b8; font-size:12px; display:flex; align-items:center; gap:5px; }
+  .tb-mod span { color:#fff; }
+  .tb-search { flex:1; max-width:320px; margin:0 auto; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15); border-radius:4px; padding:5px 12px; color:#fff; font-size:12px; outline:none; }
+  .tb-search::placeholder { color:#94a3b8; }
+  .tb-right { margin-left:auto; display:flex; align-items:center; gap:14px; }
+  .tb-av { width:27px; height:27px; border-radius:50%; background:#e2e8f0; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:10px; color:var(--navy); }
+  .tb-user { color:#e2e8f0; font-size:12px; }
+  .tb-fy { color:#cbd5e1; font-size:11px; }
+
+  .layout { display:flex; flex:1; overflow:hidden; }
+
+  /* SIDEBAR */
+  .sidebar { width:210px; background:var(--navy); flex-shrink:0; overflow-y:auto; display:flex; flex-direction:column; padding-bottom:12px; }
+  .sidebar::-webkit-scrollbar { width:3px; }
+  .sidebar::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); }
+  .s-top { padding:9px 12px; border-bottom:1px solid rgba(255,255,255,0.07); display:flex; align-items:center; gap:7px; }
+  .s-top span { color:#cbd5e1; font-size:12px; }
+  .nav { display:flex; align-items:center; gap:9px; padding:8px 13px; color:#94a3b8; font-size:12px; cursor:pointer; border-left:3px solid transparent; }
+  .nav:hover { background:rgba(255,255,255,0.04); color:#e2e8f0; }
+  .nav.open { color:#fff; background:rgba(255,255,255,0.05); }
+  .nav .ch { margin-left:auto; font-size:10px; color:#475569; }
+  .sub { background:rgba(0,0,0,0.12); }
+  .sub-i { display:flex; align-items:center; gap:7px; padding:7px 13px 7px 34px; color:#94a3b8; font-size:12px; cursor:pointer; border-left:3px solid transparent; }
+  .sub-i.active { color:#fff; border-left-color:var(--accent); background:rgba(255,255,255,0.05); }
+  .sub-i .dot { width:5px; height:5px; border-radius:50%; background:#475569; flex-shrink:0; }
+  .sub-i.active .dot { background:var(--accent); }
+  .s-logo { margin-top:auto; padding:10px 13px; border-top:1px solid rgba(255,255,255,0.07); display:flex; align-items:center; gap:9px; }
+  .logo-c { width:30px; height:30px; background:var(--accent); border-radius:7px; display:flex; align-items:center; justify-content:center; font-weight:900; color:#fff; font-size:13px; }
+  .logo-t { color:#e2e8f0; font-size:11px; font-weight:600; line-height:1.3; }
+  .logo-t small { color:#64748b; font-size:10px; font-weight:400; }
+
+  /* MAIN */
+  .main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+  .page-hdr { background:#fff; border-bottom:1px solid var(--border); padding:0 20px; height:42px; display:flex; align-items:center; flex-shrink:0; }
+  .breadcrumb { font-size:12px; color:var(--muted); }
+  .breadcrumb strong { color:var(--text); }
+  .comp-tabs { background:#fff; border-bottom:1px solid var(--border); display:flex; padding:0 20px; flex-shrink:0; }
+  .comp-tab { padding:10px 18px; font-size:12px; font-weight:500; cursor:pointer; color:var(--muted); border-bottom:2px solid transparent; white-space:nowrap; }
+  .comp-tab:hover { color:var(--text); }
+  .comp-tab.active { color:var(--navy); border-bottom-color:var(--accent); font-weight:700; }
+
+  /* CONTENT */
+  .content { flex:1; overflow-y:auto; padding:16px 20px; display:flex; flex-direction:column; gap:14px; }
+  .content::-webkit-scrollbar { width:6px; }
+  .content::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:3px; }
+
+  /* FILTER BAR */
+  .filter-bar { background:#fff; border:1px solid var(--border); border-radius:6px; padding:11px 16px; display:flex; align-items:flex-end; gap:12px; flex-wrap:wrap; }
+  .fg { display:flex; flex-direction:column; gap:4px; }
+  .fg label { font-size:11px; font-weight:600; color:var(--muted); }
+  .fi { border:1px solid var(--border); border-radius:4px; padding:6px 10px; font-size:12px; font-family:inherit; outline:none; color:var(--text); background:#fff; min-width:140px; }
+  .fi:focus { border-color:#93c5fd; }
+  .btn-apply { padding:7px 16px; background:var(--navy); color:#fff; border:none; border-radius:4px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .btn-apply:hover { background:var(--navy-l); }
+  .btn-reset { padding:7px 12px; background:#fff; color:var(--muted); border:1px solid var(--border); border-radius:4px; font-size:12px; cursor:pointer; font-family:inherit; }
+  .filter-info { margin-left:auto; font-size:11px; color:var(--muted); align-self:center; }
+  .filter-info strong { color:var(--text); }
+
+  /* KPI CARDS */
+  .kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  .kpi { background:#fff; border:1px solid var(--border); border-radius:6px; padding:12px 16px; border-left:4px solid transparent; }
+  .kpi.k1 { border-left-color:#2563eb; }
+  .kpi.k2 { border-left-color:var(--fail); }
+  .kpi.k3 { border-left-color:var(--over); }
+  .kpi.k4 { border-left-color:var(--urgent); }
+  .kpi-val { font-size:22px; font-weight:800; color:var(--navy); }
+  .kpi-lbl { font-size:11px; color:var(--muted); margin-top:2px; }
+  .kpi-sub { font-size:10px; color:#94a3b8; margin-top:3px; }
+
+  /* 2x2 GRID */
+  .grid-2x2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+
+  /* PANEL */
+  .panel { background:#fff; border:1px solid var(--border); border-radius:6px; overflow:hidden; display:flex; flex-direction:column; }
+  .p-hdr { padding:10px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; flex-shrink:0; }
+  .p-title { font-size:13px; font-weight:700; color:var(--text); flex:1; }
+  .p-sub { font-size:10px; color:var(--muted); }
+  .p-body { padding:14px; flex:1; overflow-y:auto; }
+  .p-body::-webkit-scrollbar { width:4px; }
+  .p-body::-webkit-scrollbar-thumb { background:#e2e8f0; border-radius:2px; }
+
+  /* == VIEW 1: Hours per Ticket bar chart == */
+  .hbar-row { display:flex; flex-direction:column; gap:4px; margin-bottom:12px; }
+  .hbar-row:last-child { margin-bottom:0; }
+  .hbar-top { display:flex; justify-content:space-between; font-size:11px; }
+  .hbar-id { color:#2563eb; font-weight:700; cursor:pointer; }
+  .hbar-id:hover { text-decoration:underline; }
+  .hbar-title { color:var(--muted); font-size:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:160px; }
+  .hbar-hrs { font-weight:800; color:var(--navy); }
+  .hbar-track { height:22px; background:#f1f5f9; border-radius:4px; overflow:hidden; }
+  .hbar-fill { height:100%; border-radius:4px; display:flex; align-items:center; padding-left:8px; font-size:10px; font-weight:700; color:#fff; }
+  .pri-dot { width:8px; height:8px; border-radius:2px; flex-shrink:0; display:inline-block; margin-right:4px; }
+
+  /* == VIEW 3: Overdue == */
+  .kpi-cards-sm { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
+  .kpi-sm { border-radius:6px; padding:10px 12px; text-align:center; border:1px solid transparent; }
+  .kpi-sm.overdue  { background:var(--fail-bg);  border-color:#fecaca; }
+  .kpi-sm.done     { background:var(--pass-bg);  border-color:#bbf7d0; }
+  .kpi-sm .ksm-val { font-size:26px; font-weight:900; }
+  .kpi-sm.overdue .ksm-val { color:var(--fail); }
+  .kpi-sm.done    .ksm-val { color:var(--pass); }
+  .kpi-sm .ksm-lbl { font-size:10px; font-weight:600; color:var(--muted); margin-top:2px; }
+
+  .ov-table { width:100%; border-collapse:collapse; font-size:11px; }
+  .ov-table thead tr { background:var(--navy); }
+  .ov-table th { padding:6px 10px; text-align:left; color:#cbd5e1; font-weight:600; }
+  .ov-table tbody tr { border-bottom:1px solid var(--border); }
+  .ov-table tbody tr:last-child { border-bottom:none; }
+  .ov-table td { padding:7px 10px; }
+  .ov-table tr:nth-child(even) td { background:#f8fafc; }
+  .ov-id { color:#2563eb; font-weight:700; }
+  .ov-days { font-weight:800; color:var(--fail); }
+  .ov-status { padding:2px 6px; border-radius:3px; font-size:10px; font-weight:600; background:#f1f5f9; color:var(--muted); }
+
+  /* == VIEW F: Estimation Overrun == */
+  .kpi-sm-single { border-radius:6px; padding:10px 14px; margin-bottom:12px; display:flex; align-items:center; gap:12px; background:var(--over-bg); border:1px solid #fed7aa; }
+  .kpi-sm-single .ks-val { font-size:28px; font-weight:900; color:var(--over); }
+  .kpi-sm-single .ks-lbl { font-size:11px; color:#7c2d12; font-weight:600; }
+  .kpi-sm-single .ks-sub { font-size:10px; color:#9a3412; margin-top:2px; }
+
+  .ov-bar-row { display:flex; flex-direction:column; gap:3px; margin-bottom:10px; }
+  .ov-bar-row:last-child { margin-bottom:0; }
+  .ov-bar-top { display:flex; justify-content:space-between; font-size:11px; }
+  .ov-bar-id { color:#2563eb; font-weight:700; }
+  .ov-bar-val { font-weight:800; color:var(--over); }
+  .ov-bar-track { height:20px; background:#f1f5f9; border-radius:4px; overflow:hidden; display:flex; }
+  .ov-seg-est { background:#cbd5e1; height:100%; display:flex; align-items:center; padding-left:6px; font-size:9px; font-weight:700; color:#fff; }
+  .ov-seg-over { background:var(--over); height:100%; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; color:#fff; }
+
+  /* == VIEW G: Priority Tickets == */
+  .pri-legend { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px; }
+  .pli { display:flex; align-items:center; gap:4px; font-size:10px; color:var(--muted); }
+  .pli-dot { width:8px; height:8px; border-radius:2px; flex-shrink:0; }
+
+  .pg-bar-row { display:flex; flex-direction:column; gap:3px; margin-bottom:10px; }
+  .pg-bar-row:last-child { margin-bottom:0; }
+  .pg-bar-top { display:flex; align-items:center; gap:6px; font-size:11px; }
+  .pg-id { color:#2563eb; font-weight:700; min-width:60px; }
+  .pg-title { color:var(--muted); font-size:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
+  .pg-hrs { font-weight:800; color:var(--navy); white-space:nowrap; }
+  .pg-track { height:20px; border-radius:4px; overflow:hidden; }
+  .pg-fill { height:100%; border-radius:4px; display:flex; align-items:center; padding-left:8px; font-size:9px; font-weight:800; color:#fff; }
+
+  /* PRIORITY BADGE */
+  .pb { display:inline-flex; padding:1px 6px; border-radius:3px; font-size:10px; font-weight:700; }
+  .pb-urgent    { background:var(--urgent-bg);    color:var(--urgent);    }
+  .pb-immediate { background:var(--immediate-bg); color:var(--immediate); }
+  .pb-high      { background:var(--high-bg);      color:var(--high);      }
+  .pb-normal    { background:var(--normal-bg);    color:var(--normal);    }
+  .pb-low       { background:var(--low-bg);       color:var(--low);       }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tb-mod">&#9776; Modules <span style="color:#475569;">&raquo;</span> <span>ESS Portal</span></div>
+  <input class="tb-search" type="text" placeholder="Search...">
+  <div class="tb-right">
+    <span class="tb-fy">FY: 2082-2083 | LY: 2082-2083</span>
+    <span style="color:#94a3b8;">&#128276;</span>
+    <div class="tb-av">PP</div>
+    <span class="tb-user">Pareekshit Pokharel</span>
+    <span style="color:#94a3b8;">&#9660;</span>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="s-top"><span style="color:#94a3b8;">&#9889;</span><span>Main Dashboard</span></div>
+    <div class="nav"><span>&#127968;</span> Dashboard</div>
+    <div class="nav"><span>&#9881;</span> Custom Menu <span class="ch">&#8250;</span></div>
+    <div class="nav"><span>&#128203;</span> Quick Links <span class="ch">&#8250;</span></div>
+    <div class="nav"><span>&#10003;</span> My Tasks <span class="ch">&#8250;</span></div>
+    <div class="nav"><span>&#128197;</span> Attendance <span class="ch">&#8250;</span></div>
+    <div class="nav"><span>&#127807;</span> Leave and Fieldwork <span class="ch">&#8250;</span></div>
+    <div class="nav"><span>&#9992;</span> Travel and TADA <span class="ch">&#8250;</span></div>
+    <div class="nav"><span>&#128221;</span> Request and Claims <span class="ch">&#8250;</span></div>
+    <div class="nav"><span>&#9889;</span> Activity and Response <span class="ch">&#8250;</span></div>
+    <div class="nav"><span>&#128682;</span> Exit Process <span class="ch">&#8250;</span></div>
+    <div class="nav"><span>&#127919;</span> Goals and Appraisal <span class="ch">&#8250;</span></div>
+    <div class="nav"><span>&#128202;</span> Employee Development <span class="ch">&#8250;</span></div>
+    <div class="nav"><span>&#9199;</span> More Activities <span class="ch">&#8250;</span></div>
+    <div class="nav open"><span>&#128202;</span> Reporting <span class="ch" style="transform:rotate(90deg)">&#8250;</span></div>
+    <div class="sub">
+      <div class="sub-i"><span class="dot"></span> Daily Log Book</div>
+      <div class="sub-i"><span class="dot"></span> Work Log Report</div>
+      <div class="sub-i active"><span class="dot"></span> Dashboard</div>
+    </div>
+    <div class="s-logo">
+      <div class="logo-c">N</div>
+      <div class="logo-t">Nimble<br><small>Infosys</small></div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="page-hdr">
+      <span class="breadcrumb">Reporting &raquo; <strong>Dashboard</strong></span>
+    </div>
+    <div class="comp-tabs">
+      <div class="comp-tab" onclick="switchTab(this)">&#127970; Department Wise</div>
+      <div class="comp-tab" onclick="switchTab(this)">&#128100; User Wise</div>
+      <div class="comp-tab active" onclick="switchTab(this)">&#128202; Project Wise</div>
+    </div>
+
+    <div class="content">
+
+      <!-- FILTER BAR -->
+      <div class="filter-bar">
+        <div class="fg"><label>Start Date</label><input type="date" class="fi" id="start-date" value="2026-03-01"></div>
+        <div class="fg"><label>End Date</label><input type="date" class="fi" id="end-date" value="2026-03-16"></div>
+        <div class="fg">
+          <label>Priority</label>
+          <select class="fi" id="pri-filter">
+            <option value="">All Priorities</option>
+            <option>Urgent</option><option>Immediate</option>
+            <option>High</option><option>Normal</option><option>Low</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Project</label>
+          <select class="fi">
+            <option value="">All Projects</option>
+            <option>Project Management (PMS)</option>
+            <option>HRMS Core</option>
+            <option>ESS Portal</option>
+          </select>
+        </div>
+        <button class="btn-apply" onclick="applyFilter()">Apply</button>
+        <button class="btn-reset">Reset</button>
+        <span class="filter-info" id="filter-info">Period: <strong>Mar 1 &ndash; Mar 16, 2026</strong> &middot; Sources: <strong>pm_vwTaskReport</strong> &amp; <strong>pm_vwTasks</strong></span>
+      </div>
+
+      <!-- KPI CARDS -->
+      <div class="kpi-row">
+        <div class="kpi k1"><div class="kpi-val">14</div><div class="kpi-lbl">Total Tickets</div><div class="kpi-sub">Worked on this period</div></div>
+        <div class="kpi k2"><div class="kpi-val">3</div><div class="kpi-lbl">Overdue Tickets</div><div class="kpi-sub">Past due date, still open</div></div>
+        <div class="kpi k3"><div class="kpi-val">3</div><div class="kpi-lbl">Estimation Overruns</div><div class="kpi-sub">Spent more than estimated</div></div>
+        <div class="kpi k4"><div class="kpi-val">4</div><div class="kpi-lbl">Urgent / Immediate</div><div class="kpi-sub">High priority tickets</div></div>
+      </div>
+
+      <!-- 2x2 GRID -->
+      <div class="grid-2x2">
+
+        <!-- == VIEW 1: Hours per Ticket (top left) == -->
+        <div class="panel">
+          <div class="p-hdr">
+            <div>
+              <div class="p-title">&#128202; View 1 &ndash; Hours per Ticket</div>
+              <div class="p-sub">Source: dbo.pm_vwTaskReport &middot; Sorted highest to lowest</div>
+            </div>
+          </div>
+          <div class="p-body">
+
+            <div class="hbar-row">
+              <div class="hbar-top">
+                <div><span class="hbar-id">#33208</span> <span class="hbar-title">PM Requirements Daily Reporting</span></div>
+                <span class="hbar-hrs">9.0h</span>
+              </div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:100%;background:#2563eb;">9.0h &nbsp;<span class="pb pb-urgent" style="font-size:9px;">Urgent</span></div></div>
+            </div>
+
+            <div class="hbar-row">
+              <div class="hbar-top">
+                <div><span class="hbar-id">#33209</span> <span class="hbar-title">Appraisal Form Split Sections</span></div>
+                <span class="hbar-hrs">5.5h</span>
+              </div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:61%;background:#eab308;">5.5h &nbsp;<span class="pb pb-high" style="font-size:9px;">High</span></div></div>
+            </div>
+
+            <div class="hbar-row">
+              <div class="hbar-top">
+                <div><span class="hbar-id">#33207</span> <span class="hbar-title">Employee Import Attendance</span></div>
+                <span class="hbar-hrs">5.0h</span>
+              </div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:56%;background:#dc2626;">5.0h &nbsp;<span class="pb pb-urgent" style="font-size:9px;">Urgent</span></div></div>
+            </div>
+
+            <div class="hbar-row">
+              <div class="hbar-top">
+                <div><span class="hbar-id">#33196</span> <span class="hbar-title">Public Holiday Attendance</span></div>
+                <span class="hbar-hrs">4.0h</span>
+              </div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:44%;background:#eab308;">4.0h &nbsp;<span class="pb pb-high" style="font-size:9px;">High</span></div></div>
+            </div>
+
+            <div class="hbar-row">
+              <div class="hbar-top">
+                <div><span class="hbar-id">#33201</span> <span class="hbar-title">Build Ticket Analytics Dashboard</span></div>
+                <span class="hbar-hrs">4.0h</span>
+              </div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:44%;background:#dc2626;">4.0h &nbsp;<span class="pb pb-urgent" style="font-size:9px;">Urgent</span></div></div>
+            </div>
+
+            <div class="hbar-row">
+              <div class="hbar-top">
+                <div><span class="hbar-id">#33206</span> <span class="hbar-title">Retirement Date Display Logic</span></div>
+                <span class="hbar-hrs">3.5h</span>
+              </div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:39%;background:#f97316;">3.5h &nbsp;<span class="pb pb-immediate" style="font-size:9px;">Immediate</span></div></div>
+            </div>
+
+            <div class="hbar-row">
+              <div class="hbar-top">
+                <div><span class="hbar-id">#33205</span> <span class="hbar-title">Employee Basic Info Not Updating</span></div>
+                <span class="hbar-hrs">3.5h</span>
+              </div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:39%;background:#f97316;">3.5h &nbsp;<span class="pb pb-immediate" style="font-size:9px;">Immediate</span></div></div>
+            </div>
+
+            <div class="hbar-row">
+              <div class="hbar-top">
+                <div><span class="hbar-id">#33210</span> <span class="hbar-title">TDS Performance Large Records</span></div>
+                <span class="hbar-hrs">3.0h</span>
+              </div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:33%;background:#2563eb;">3.0h &nbsp;<span class="pb pb-normal" style="font-size:9px;">Normal</span></div></div>
+            </div>
+
+            <div class="hbar-row">
+              <div class="hbar-top">
+                <div><span class="hbar-id">#33197</span> <span class="hbar-title">Negative Substitute Leave</span></div>
+                <span class="hbar-hrs">2.0h</span>
+              </div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:22%;background:#2563eb;">2.0h</div></div>
+            </div>
+
+            <div class="hbar-row">
+              <div class="hbar-top">
+                <div><span class="hbar-id">#33200</span> <span class="hbar-title">Handle Null Parameter Email</span></div>
+                <span class="hbar-hrs">2.5h</span>
+              </div>
+              <div class="hbar-track"><div class="hbar-fill" style="width:28%;background:#2563eb;">2.5h</div></div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- == VIEW 3: Overdue Tickets (top right) == -->
+        <div class="panel">
+          <div class="p-hdr">
+            <div>
+              <div class="p-title">&#9200; View 3 &ndash; Overdue Ticket Count</div>
+              <div class="p-sub">Source: dbo.pm_vwTasks &middot; IsTaskClosed = 0 &amp; TaskDueDate &lt; Today</div>
+            </div>
+          </div>
+          <div class="p-body">
+
+            <div class="kpi-cards-sm">
+              <div class="kpi-sm overdue">
+                <div class="ksm-val">3</div>
+                <div class="ksm-lbl">Overdue Tickets</div>
+              </div>
+              <div class="kpi-sm done">
+                <div class="ksm-val">12</div>
+                <div class="ksm-lbl">Completed On Time</div>
+              </div>
+            </div>
+
+            <table class="ov-table">
+              <thead>
+                <tr>
+                  <th>Ticket</th>
+                  <th>Task Title</th>
+                  <th>Due Date</th>
+                  <th>Days Over</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="ov-id">#33031</td>
+                  <td>Tax Filing Integration</td>
+                  <td style="white-space:nowrap;color:var(--muted);">2026-03-01</td>
+                  <td><span class="ov-days">15d</span></td>
+                  <td><span class="ov-status" style="background:#ffedd5;color:#c2410c;">In Progress</span></td>
+                </tr>
+                <tr>
+                  <td class="ov-id">#33044</td>
+                  <td>Audit Report Generation</td>
+                  <td style="white-space:nowrap;color:var(--muted);">2026-03-10</td>
+                  <td><span class="ov-days">6d</span></td>
+                  <td><span class="ov-status">New</span></td>
+                </tr>
+                <tr>
+                  <td class="ov-id">#33055</td>
+                  <td>Budget Review Module</td>
+                  <td style="white-space:nowrap;color:var(--muted);">2026-03-14</td>
+                  <td><span class="ov-days">2d</span></td>
+                  <td><span class="ov-status" style="background:#fef9c3;color:#854d0e;">Need Feedback</span></td>
+                </tr>
+              </tbody>
+            </table>
+
+            <div style="margin-top:10px;padding:8px 10px;background:#fff7ed;border-radius:4px;border:1px solid #fed7aa;font-size:11px;color:#7c2d12;">
+              &#9888; <strong>Note for developer:</strong> TaskDueDate can be NULL in pm_vwTasks &mdash; always check IS NULL before date comparison or the query will error.
+            </div>
+
+          </div>
+        </div>
+
+        <!-- == VIEW F: Estimation Overrun (bottom left) == -->
+        <div class="panel">
+          <div class="p-hdr">
+            <div>
+              <div class="p-title">&#128200; View F &ndash; Estimation Overrun</div>
+              <div class="p-sub">Source: dbo.pm_vwTasks &middot; TaskSpentTime &gt; TaskEstimatedTime</div>
+            </div>
+          </div>
+          <div class="p-body">
+
+            <div class="kpi-sm-single">
+              <div class="ks-val">3</div>
+              <div>
+                <div class="ks-lbl">Tickets Over Estimate</div>
+                <div class="ks-sub">Sorted by biggest overrun first</div>
+              </div>
+            </div>
+
+            <div class="ov-bar-row">
+              <div class="ov-bar-top">
+                <span class="ov-bar-id">#33045</span>
+                <span style="flex:1;color:var(--muted);font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 6px;">Payroll Module Integration</span>
+                <span class="ov-bar-val">+13.5h over</span>
+              </div>
+              <div class="ov-bar-track">
+                <div class="ov-seg-est" style="width:27%;background:#cbd5e1;">Est 5h</div>
+                <div class="ov-seg-over" style="width:73%;">+13.5h</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:2px;">
+                <span>Estimated: 5.0h</span><span>Actual: 18.5h</span>
+              </div>
+            </div>
+
+            <div class="ov-bar-row">
+              <div class="ov-bar-top">
+                <span class="ov-bar-id">#33032</span>
+                <span style="flex:1;color:var(--muted);font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 6px;">Leave Setup Configuration</span>
+                <span class="ov-bar-val">+2.5h over</span>
+              </div>
+              <div class="ov-bar-track">
+                <div class="ov-seg-est" style="width:44%;background:#cbd5e1;">Est 2h</div>
+                <div class="ov-seg-over" style="width:56%;">+2.5h</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:2px;">
+                <span>Estimated: 2.0h</span><span>Actual: 4.5h</span>
+              </div>
+            </div>
+
+            <div class="ov-bar-row">
+              <div class="ov-bar-top">
+                <span class="ov-bar-id">#33061</span>
+                <span style="flex:1;color:var(--muted);font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin:0 6px;">Report Export Feature</span>
+                <span class="ov-bar-val">+2.0h over</span>
+              </div>
+              <div class="ov-bar-track">
+                <div class="ov-seg-est" style="width:60%;background:#cbd5e1;">Est 3h</div>
+                <div class="ov-seg-over" style="width:40%;">+2h</div>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:2px;">
+                <span>Estimated: 3.0h</span><span>Actual: 5.0h</span>
+              </div>
+            </div>
+
+            <div style="margin-top:10px;padding:8px 10px;background:#fff7ed;border-radius:4px;border:1px solid #fed7aa;font-size:11px;color:#7c2d12;">
+              &#9888; <strong>Note:</strong> Use TaskEstimatedTime &amp; TaskSpentTime (integer minutes &divide; 60). Never use TaskEstimatedHour or TaskSpentHour &mdash; they are text strings.
+            </div>
+
+          </div>
+        </div>
+
+        <!-- == VIEW G: Priority Tickets (bottom right) == -->
+        <div class="panel">
+          <div class="p-hdr">
+            <div>
+              <div class="p-title">&#128680; View G &ndash; Urgent &amp; Immediate Tickets</div>
+              <div class="p-sub">Source: dbo.pm_vwTaskReport &middot; TaskPriorityName IN ('Urgent','Immediate')</div>
+            </div>
+          </div>
+          <div class="p-body">
+
+            <div class="pri-legend">
+              <div class="pli"><div class="pli-dot" style="background:#dc2626;"></div> Urgent</div>
+              <div class="pli"><div class="pli-dot" style="background:#f97316;"></div> Immediate</div>
+            </div>
+
+            <div class="pg-bar-row">
+              <div class="pg-bar-top">
+                <span class="pg-id">#33208</span>
+                <span class="pg-title">PM Requirements Daily Reporting</span>
+                <span class="pg-hrs">7.0h</span>
+              </div>
+              <div class="pg-track" style="background:#f1f5f9;">
+                <div class="pg-fill" style="width:100%;background:#dc2626;">Urgent &middot; 7h</div>
+              </div>
+            </div>
+
+            <div class="pg-bar-row">
+              <div class="pg-bar-top">
+                <span class="pg-id">#33207</span>
+                <span class="pg-title">Employee Import Attendance</span>
+                <span class="pg-hrs">5.0h</span>
+              </div>
+              <div class="pg-track" style="background:#f1f5f9;">
+                <div class="pg-fill" style="width:71%;background:#dc2626;">Urgent &middot; 5h</div>
+              </div>
+            </div>
+
+            <div class="pg-bar-row">
+              <div class="pg-bar-top">
+                <span class="pg-id">#33201</span>
+                <span class="pg-title">Build Ticket Analytics Dashboard</span>
+                <span class="pg-hrs">4.0h</span>
+              </div>
+              <div class="pg-track" style="background:#f1f5f9;">
+                <div class="pg-fill" style="width:57%;background:#dc2626;">Urgent &middot; 4h</div>
+              </div>
+            </div>
+
+            <div class="pg-bar-row">
+              <div class="pg-bar-top">
+                <span class="pg-id">#33206</span>
+                <span class="pg-title">Retirement Date Display Logic</span>
+                <span class="pg-hrs">3.5h</span>
+              </div>
+              <div class="pg-track" style="background:#f1f5f9;">
+                <div class="pg-fill" style="width:50%;background:#f97316;">Immediate &middot; 3.5h</div>
+              </div>
+            </div>
+
+            <div class="pg-bar-row">
+              <div class="pg-bar-top">
+                <span class="pg-id">#33205</span>
+                <span class="pg-title">Employee Basic Info Not Updating</span>
+                <span class="pg-hrs">3.5h</span>
+              </div>
+              <div class="pg-track" style="background:#f1f5f9;">
+                <div class="pg-fill" style="width:50%;background:#f97316;">Immediate &middot; 3.5h</div>
+              </div>
+            </div>
+
+            <div style="margin-top:12px;padding:8px 10px;background:#f8fafc;border-radius:4px;border:1px solid var(--border);font-size:11px;color:var(--muted);">
+              Total urgent &amp; immediate hours: <strong style="color:var(--navy);">23.0h</strong> across <strong style="color:var(--navy);">5 tickets</strong>
+              <span style="margin-left:8px;padding:2px 7px;background:var(--urgent-bg);color:var(--urgent);border-radius:3px;font-weight:700;font-size:10px;">Urgent: 20h</span>
+              <span style="margin-left:4px;padding:2px 7px;background:var(--immediate-bg);color:var(--immediate);border-radius:3px;font-weight:700;font-size:10px;">Immediate: 7h</span>
+            </div>
+
+          </div>
+        </div>
+
+      </div><!-- /grid-2x2 -->
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div>
+
+<script>
+  function switchTab(el) {
+    document.querySelectorAll('.comp-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  function applyFilter() {
+    const s = document.getElementById('start-date').value;
+    const e = document.getElementById('end-date').value;
+    if (!s || !e) return;
+    const fmt = d => new Date(d).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+    document.getElementById('filter-info').innerHTML =
+      `Period: <strong>${fmt(s)} &ndash; ${fmt(e)}</strong> &middot; Sources: <strong>pm_vwTaskReport</strong> &amp; <strong>pm_vwTasks</strong>`;
+  }
+</script>
+</body>
+</html>

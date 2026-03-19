@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nimble Infosys - User Wise Dashboard</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root {
+    --navy:#1a2b4a; --navy-l:#243555; --accent:#f97316;
+    --text:#1e293b; --muted:#64748b; --border:#e2e8f0; --bg:#f8fafc;
+    --urgent:#dc2626;    --urgent-bg:#fee2e2;
+    --immediate:#f97316; --immediate-bg:#ffedd5;
+    --high:#eab308;      --high-bg:#fef9c3;
+    --normal:#2563eb;    --normal-bg:#dbeafe;
+    --low:#94a3b8;       --low-bg:#f1f5f9;
+  }
+  body { font-family:'Segoe UI',sans-serif; font-size:13px; background:var(--bg); color:var(--text); display:flex; flex-direction:column; height:100vh; overflow:hidden; }
+
+  .topbar { height:46px; background:var(--navy); display:flex; align-items:center; padding:0 14px; gap:12px; flex-shrink:0; }
+  .tb-mod { color:#94a3b8; font-size:12px; display:flex; align-items:center; gap:5px; }
+  .tb-mod span { color:#fff; }
+  .tb-search { flex:1; max-width:320px; margin:0 auto; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15); border-radius:4px; padding:5px 12px; color:#fff; font-size:12px; outline:none; }
+  .tb-search::placeholder { color:#94a3b8; }
+  .tb-right { margin-left:auto; display:flex; align-items:center; gap:14px; }
+  .tb-av { width:27px; height:27px; border-radius:50%; background:#e2e8f0; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:10px; color:var(--navy); }
+  .tb-user { color:#e2e8f0; font-size:12px; }
+  .tb-fy { color:#cbd5e1; font-size:11px; }
+
+  .layout { display:flex; flex:1; overflow:hidden; }
+
+  .sidebar { width:210px; background:var(--navy); flex-shrink:0; overflow-y:auto; display:flex; flex-direction:column; padding-bottom:12px; }
+  .sidebar::-webkit-scrollbar { width:3px; }
+  .sidebar::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); }
+  .s-top { padding:9px 12px; border-bottom:1px solid rgba(255,255,255,0.07); display:flex; align-items:center; gap:7px; }
+  .s-top span { color:#cbd5e1; font-size:12px; }
+  .nav { display:flex; align-items:center; gap:9px; padding:8px 13px; color:#94a3b8; font-size:12px; cursor:pointer; border-left:3px solid transparent; }
+  .nav:hover { background:rgba(255,255,255,0.04); color:#e2e8f0; }
+  .nav.open { color:#fff; background:rgba(255,255,255,0.05); }
+  .nav .ch { margin-left:auto; font-size:10px; color:#475569; }
+  .sub { background:rgba(0,0,0,0.12); }
+  .sub-i { display:flex; align-items:center; gap:7px; padding:7px 13px 7px 34px; color:#94a3b8; font-size:12px; cursor:pointer; border-left:3px solid transparent; }
+  .sub-i:hover { color:#e2e8f0; background:rgba(255,255,255,0.03); }
+  .sub-i.active { color:#fff; border-left-color:var(--accent); background:rgba(255,255,255,0.05); }
+  .sub-i .dot { width:5px; height:5px; border-radius:50%; background:#475569; flex-shrink:0; }
+  .sub-i.active .dot { background:var(--accent); }
+  .s-logo { margin-top:auto; padding:10px 13px; border-top:1px solid rgba(255,255,255,0.07); display:flex; align-items:center; gap:9px; }
+  .logo-c { width:30px; height:30px; background:var(--accent); border-radius:7px; display:flex; align-items:center; justify-content:center; font-weight:900; color:#fff; font-size:13px; }
+  .logo-t { color:#e2e8f0; font-size:11px; font-weight:600; line-height:1.3; }
+  .logo-t small { color:#64748b; font-size:10px; font-weight:400; }
+
+  .main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+  .page-hdr { background:#fff; border-bottom:1px solid var(--border); padding:0 20px; height:42px; display:flex; align-items:center; flex-shrink:0; }
+  .breadcrumb { font-size:12px; color:var(--muted); }
+  .breadcrumb strong { color:var(--text); }
+
+  .comp-tabs { background:#fff; border-bottom:1px solid var(--border); display:flex; padding:0 20px; flex-shrink:0; }
+  .comp-tab { padding:10px 18px; font-size:12px; font-weight:500; cursor:pointer; color:var(--muted); border-bottom:2px solid transparent; white-space:nowrap; }
+  .comp-tab:hover { color:var(--text); }
+  .comp-tab.active { color:var(--navy); border-bottom-color:var(--accent); font-weight:700; }
+
+  .content { flex:1; overflow-y:auto; padding:18px 20px; display:flex; flex-direction:column; gap:14px; }
+  .content::-webkit-scrollbar { width:6px; }
+  .content::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:3px; }
+
+  .filter-bar { background:#fff; border:1px solid var(--border); border-radius:6px; padding:12px 16px; display:flex; align-items:flex-end; gap:12px; flex-wrap:wrap; }
+  .fg { display:flex; flex-direction:column; gap:4px; }
+  .fg label { font-size:11px; font-weight:600; color:var(--muted); }
+  .fi { border:1px solid var(--border); border-radius:4px; padding:6px 10px; font-size:12px; font-family:inherit; outline:none; color:var(--text); background:#fff; min-width:150px; }
+  .fi:focus { border-color:#93c5fd; }
+  .btn-apply { padding:7px 18px; background:var(--navy); color:#fff; border:none; border-radius:4px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .btn-apply:hover { background:var(--navy-l); }
+  .btn-reset { padding:7px 14px; background:#fff; color:var(--muted); border:1px solid var(--border); border-radius:4px; font-size:12px; cursor:pointer; font-family:inherit; }
+  .filter-info { margin-left:auto; font-size:11px; color:var(--muted); align-self:center; }
+  .filter-info strong { color:var(--text); }
+
+  .kpi-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; }
+  .kpi { background:#fff; border:1px solid var(--border); border-radius:6px; padding:12px 16px; border-left:4px solid transparent; }
+  .kpi.k1 { border-left-color:#2563eb; }
+  .kpi.k2 { border-left-color:#16a34a; }
+  .kpi.k3 { border-left-color:var(--accent); }
+  .kpi.k4 { border-left-color:#7c3aed; }
+  .kpi-val { font-size:22px; font-weight:800; color:var(--navy); }
+  .kpi-lbl { font-size:11px; color:var(--muted); margin-top:2px; }
+  .kpi-sub { font-size:10px; color:#94a3b8; margin-top:3px; }
+
+  .two-col { display:grid; grid-template-columns:1fr 420px; gap:14px; }
+
+  .panel { background:#fff; border:1px solid var(--border); border-radius:6px; overflow:hidden; }
+  .p-hdr { padding:10px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:8px; }
+  .p-title { font-size:13px; font-weight:700; color:var(--text); flex:1; }
+  .p-act { display:flex; gap:6px; }
+  .p-btn { padding:4px 10px; border:1px solid var(--border); border-radius:4px; font-size:11px; cursor:pointer; background:#fff; color:var(--text); font-family:inherit; }
+  .p-btn:hover { background:var(--bg); }
+
+  .tbl { width:100%; border-collapse:collapse; }
+  .tbl thead tr { background:var(--navy); }
+  .tbl th { padding:8px 12px; text-align:left; font-size:11px; font-weight:600; color:#cbd5e1; white-space:nowrap; border-right:1px solid rgba(255,255,255,0.07); }
+  .tbl th:last-child { border-right:none; }
+  .tbl tbody tr { border-bottom:1px solid var(--border); transition:background 0.1s; }
+  .tbl tbody tr:hover { background:#f8fafc; }
+  .tbl td { padding:8px 12px; font-size:12px; border-right:1px solid var(--border); vertical-align:middle; }
+  .tbl td:last-child { border-right:none; }
+
+  .grp-row td { background:#f1f5f9 !important; font-weight:700; color:var(--navy); padding:7px 12px; cursor:pointer; }
+  .grp-row:hover td { background:#e8edf5 !important; }
+  .grp-cell { display:flex; align-items:center; gap:7px; }
+  .garr { font-size:10px; transition:transform 0.2s; display:inline-block; }
+  .garr.open { transform:rotate(90deg); }
+
+  .u-badge { display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:600; padding:3px 8px; border-radius:4px; }
+  .u1 { background:#dbeafe; color:#1d4ed8; }
+  .u2 { background:#dcfce7; color:#15803d; }
+  .u3 { background:#fef9c3; color:#854d0e; }
+  .u4 { background:#ede9fe; color:#6d28d9; }
+  .u5 { background:#f3e8ff; color:#7e22ce; }
+
+  .av { width:22px; height:22px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:8px; font-weight:800; flex-shrink:0; }
+  .av1 { background:#bfdbfe; color:#1d4ed8; }
+  .av2 { background:#bbf7d0; color:#15803d; }
+  .av3 { background:#fef08a; color:#854d0e; }
+  .av4 { background:#ddd6fe; color:#6d28d9; }
+  .av5 { background:#e9d5ff; color:#7e22ce; }
+
+  .grp-total { font-size:11px; font-weight:400; color:var(--muted); margin-left:4px; }
+  .tc-link { color:#2563eb; font-weight:600; font-size:11px; cursor:pointer; }
+  .tc-link:hover { text-decoration:underline; }
+
+  .pb { display:inline-flex; align-items:center; padding:2px 7px; border-radius:3px; font-size:10px; font-weight:700; white-space:nowrap; }
+  .pb-urgent    { background:var(--urgent-bg);    color:var(--urgent);    }
+  .pb-immediate { background:var(--immediate-bg); color:var(--immediate); }
+  .pb-high      { background:var(--high-bg);      color:var(--high);      }
+  .pb-normal    { background:var(--normal-bg);    color:var(--normal);    }
+  .pb-low       { background:var(--low-bg);       color:var(--low);       }
+
+  .h-wrap { display:flex; align-items:center; gap:6px; }
+  .h-bar  { height:6px; border-radius:3px; flex-shrink:0; }
+  .h-txt  { font-size:11px; font-weight:700; color:var(--navy); white-space:nowrap; }
+
+  .data-row.hidden { display:none; }
+
+  .t-foot { padding:8px 12px; border-top:1px solid var(--border); display:flex; align-items:center; font-size:11px; color:var(--muted); }
+  .pg { margin-left:auto; display:flex; gap:3px; }
+  .pg-btn { width:24px; height:24px; border:1px solid var(--border); border-radius:3px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:11px; background:#fff; }
+  .pg-btn.active { background:var(--navy); color:#fff; border-color:var(--navy); }
+
+  .right-col { display:flex; flex-direction:column; gap:14px; }
+  .chart-area { padding:14px 16px; }
+  .chart-sub { font-size:11px; color:var(--muted); margin-bottom:12px; }
+
+  .rank { width:20px; height:20px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:#fff; flex-shrink:0; }
+  .rank-1 { background:#f0a500; }
+  .rank-2 { background:#9ca3af; }
+  .rank-3 { background:#cd7f32; }
+  .rank-x { background:#e2e8f0; color:#64748b; }
+
+  .lb-row { display:flex; flex-direction:column; gap:5px; margin-bottom:14px; }
+  .lb-row:last-child { margin-bottom:0; }
+  .lb-top { display:flex; align-items:center; justify-content:space-between; font-size:12px; }
+  .lb-name { display:flex; align-items:center; gap:7px; font-weight:700; color:var(--text); }
+  .lb-hours { font-weight:800; color:var(--navy); }
+
+  .sbar { height:30px; border-radius:5px; overflow:hidden; display:flex; cursor:pointer; }
+  .sbar:hover { filter:brightness(1.04); }
+  .seg { height:100%; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:#fff; overflow:hidden; white-space:nowrap; transition:width 0.4s ease; position:relative; }
+  .seg::after { content:attr(data-tip); display:none; position:absolute; bottom:34px; left:50%; transform:translateX(-50%); background:#1e293b; color:#fff; font-size:10px; padding:3px 8px; border-radius:4px; white-space:nowrap; z-index:50; pointer-events:none; }
+  .seg:hover::after { display:block; }
+  .seg.urgent    { background:#dc2626; }
+  .seg.immediate { background:#f97316; }
+  .seg.high      { background:#eab308; }
+  .seg.normal    { background:#2563eb; }
+  .seg.low       { background:#94a3b8; }
+
+  .drill { display:none; margin-top:6px; border:1px solid var(--border); border-radius:4px; overflow:hidden; }
+  .drill.open { display:block; }
+  .drill table { width:100%; border-collapse:collapse; font-size:11px; }
+  .drill thead tr { background:#f8fafc; }
+  .drill th { padding:5px 10px; text-align:left; color:var(--muted); font-weight:600; border-bottom:1px solid var(--border); }
+  .drill td { padding:6px 10px; border-bottom:1px solid #f1f5f9; }
+  .drill tr:last-child td { border-bottom:none; }
+  .d-hrs { font-weight:700; color:var(--navy); }
+
+  .donut-wrap { padding:14px 16px; }
+  .donut-content { display:flex; align-items:center; gap:14px; }
+  .donut-svg { flex-shrink:0; }
+  .d-legend { display:flex; flex-direction:column; gap:7px; flex:1; }
+  .d-leg-item { display:flex; align-items:center; gap:7px; font-size:11px; }
+  .d-dot { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
+  .d-name { flex:1; color:var(--text); }
+  .d-pct { font-weight:700; color:var(--navy); }
+
+  .pri-legend { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+  .pli { display:flex; align-items:center; gap:4px; font-size:11px; color:var(--muted); }
+  .pli-dot { width:9px; height:9px; border-radius:2px; flex-shrink:0; }
+
+  .u-bar-row { margin-bottom:12px; }
+  .u-bar-row:last-child { margin-bottom:0; }
+  .u-bar-top { display:flex; justify-content:space-between; font-size:12px; font-weight:700; margin-bottom:5px; }
+  .u-sbar { height:30px; border-radius:5px; overflow:hidden; display:flex; cursor:pointer; }
+  .u-sbar:hover { filter:brightness(1.04); }
+
+  .dd-panel { display:none; margin-top:6px; background:#f8fafc; border:1px solid var(--border); border-radius:4px; padding:10px; }
+  .dd-panel.open { display:block; }
+  .dd-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; text-align:center; font-size:11px; }
+  .dd-cell .dd-lbl { font-weight:700; padding:1px 5px; border-radius:3px; font-size:10px; display:inline-block; margin-bottom:3px; }
+  .dd-cell .dd-val { font-weight:700; color:var(--navy); }
+  .dd-cell .dd-sub { color:#94a3b8; font-size:10px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="tb-mod">&#9776; Modules <span style="color:#475569;">&raquo;</span> <span>ESS Portal</span></div>
+  <input class="tb-search" type="text" placeholder="Search...">
+  <div class="tb-right">
+    <span class="tb-fy">FY: 2082-2083 | LY: 2082-2083</span>
+    <span style="color:#94a3b8;">&#128276;</span>
+    <div class="tb-av">PP</div>
+    <span class="tb-user">Pareekshit Pokharel</span>
+    <span style="color:#94a3b8;">&#9660;</span>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="s-top"><span style="color:#94a3b8;">&#8801;</span><span>Main Dashboard</span></div>
+    <div class="nav"><span>&#127968;</span> Dashboard</div>
+    <div class="nav"><span>&#9200;</span> Custom Menu <span class="ch">&#9658;</span></div>
+    <div class="nav"><span>&#128279;</span> Quick Links <span class="ch">&#9658;</span></div>
+    <div class="nav"><span>&#9989;</span> My Tasks <span class="ch">&#9658;</span></div>
+    <div class="nav"><span>&#128197;</span> Attendance <span class="ch">&#9658;</span></div>
+    <div class="nav"><span>&#127999;</span> Leave and Fieldwork <span class="ch">&#9658;</span></div>
+    <div class="nav"><span>&#9992;</span> Travel and TADA <span class="ch">&#9658;</span></div>
+    <div class="nav"><span>&#128196;</span> Request and Claims <span class="ch">&#9658;</span></div>
+    <div class="nav"><span>&#9889;</span> Activity and Response <span class="ch">&#9658;</span></div>
+    <div class="nav"><span>&#128682;</span> Exit Process <span class="ch">&#9658;</span></div>
+    <div class="nav"><span>&#127919;</span> Goals and Appraisal <span class="ch">&#9658;</span></div>
+    <div class="nav"><span>&#128218;</span> Employee Development <span class="ch">&#9658;</span></div>
+    <div class="nav"><span>&#9776;</span> More Activities <span class="ch">&#9658;</span></div>
+    <div class="nav open"><span>&#128202;</span> Reporting <span class="ch" style="transform:rotate(90deg)">&#9658;</span></div>
+    <div class="sub">
+      <div class="sub-i"><span class="dot"></span> Daily Log Book</div>
+      <div class="sub-i"><span class="dot"></span> Work Log Report</div>
+      <div class="sub-i active"><span class="dot"></span> Dashboard</div>
+    </div>
+    <div class="s-logo">
+      <div class="logo-c">N</div>
+      <div class="logo-t">Nimble<br><small>Infosys</small></div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="page-hdr">
+      <span class="breadcrumb">Reporting &raquo; <strong>Dashboard</strong></span>
+    </div>
+
+    <div class="comp-tabs">
+      <div class="comp-tab" onclick="switchTab(this)">&#128226; Department Wise</div>
+      <div class="comp-tab active" onclick="switchTab(this)">&#128100; User Wise</div>
+      <div class="comp-tab" onclick="switchTab(this)">&#128202; Project Wise</div>
+    </div>
+
+    <div class="content">
+
+      <div class="filter-bar">
+        <div class="fg"><label>Start Date</label><input type="date" class="fi" id="start-date" value="2026-03-01"></div>
+        <div class="fg"><label>End Date</label><input type="date" class="fi" id="end-date" value="2026-03-16"></div>
+        <div class="fg">
+          <label>User</label>
+          <select class="fi">
+            <option value="">All Users</option>
+            <option>Pareekshit Pokharel</option>
+            <option>Prajwol Sigdel</option>
+            <option>Asmita Gautam</option>
+            <option>Sudesh Chaudhary</option>
+            <option>System/Admin</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Priority</label>
+          <select class="fi">
+            <option value="">All Priorities</option>
+            <option>Urgent</option><option>Immediate</option>
+            <option>High</option><option>Normal</option><option>Low</option>
+          </select>
+        </div>
+        <button class="btn-apply" onclick="applyFilter()">Apply</button>
+        <button class="btn-reset">Reset</button>
+        <span class="filter-info" id="filter-info">Period: <strong>Mar 1 &ndash; Mar 16, 2026</strong> &middot; Source: <strong>dbo.pm_vwTaskReport</strong></span>
+      </div>
+
+      <div class="kpi-row">
+        <div class="kpi k1"><div class="kpi-val">5</div><div class="kpi-lbl">Active Users</div><div class="kpi-sub">Logged hours this period</div></div>
+        <div class="kpi k2"><div class="kpi-val">50h</div><div class="kpi-lbl">Total Hours Logged</div><div class="kpi-sub">Across all users</div></div>
+        <div class="kpi k3"><div class="kpi-val">14</div><div class="kpi-lbl">Tickets Worked On</div><div class="kpi-sub">Distinct ticket count</div></div>
+        <div class="kpi k4"><div class="kpi-val" style="font-size:15px;padding-top:3px;">Pareekshit</div><div class="kpi-lbl">Top Contributor</div><div class="kpi-sub">18.5h this period &#127942;</div></div>
+      </div>
+
+      <div class="two-col">
+
+        <div class="panel">
+          <div class="p-hdr">
+            <span class="p-title">Hours by User &mdash; per Ticket</span>
+            <div class="p-act">
+              <button class="p-btn">&#8595; Export</button>
+              <button class="p-btn" onclick="expandAll()">Expand All</button>
+            </div>
+          </div>
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th style="width:190px;">User</th>
+                <th style="width:88px;">Ticket ID</th>
+                <th>Task Title</th>
+                <th style="width:100px;">Priority</th>
+                <th style="width:120px;">Hours Logged</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- Pareekshit -->
+              <tr class="grp-row" onclick="toggleGroup('g1')">
+                <td colspan="5"><div class="grp-cell">
+                  <span class="garr open" id="arr-g1">&#9658;</span>
+                  <div class="av av1">PP</div>
+                  <span class="u-badge u1">Pareekshit Pokharel</span>
+                  <span class="grp-total">18.5h &middot; 5 tickets</span>
+                </div></td>
+              </tr>
+              <tr class="data-row" data-group="g1"><td style="color:#94a3b8;font-size:11px;padding-left:24px;">&#9203;</td><td class="tc-link">#33208</td><td>PM Requirements for Daily Reporting</td><td><span class="pb pb-urgent">Urgent</span></td><td><div class="h-wrap"><div class="h-bar" style="width:65px;background:#fecaca;"></div><span class="h-txt">7.0h</span></div></td></tr>
+              <tr class="data-row" data-group="g1"><td style="color:#94a3b8;font-size:11px;padding-left:24px;">&#9203;</td><td class="tc-link">#33196</td><td>Public Holiday Attendance Calendar</td><td><span class="pb pb-high">High</span></td><td><div class="h-wrap"><div class="h-bar" style="width:38px;background:#fef08a;"></div><span class="h-txt">4.0h</span></div></td></tr>
+              <tr class="data-row" data-group="g1"><td style="color:#94a3b8;font-size:11px;padding-left:24px;">&#9203;</td><td class="tc-link">#33205</td><td>Employee Basic Info Not Updating</td><td><span class="pb pb-immediate">Immediate</span></td><td><div class="h-wrap"><div class="h-bar" style="width:32px;background:#fed7aa;"></div><span class="h-txt">3.5h</span></div></td></tr>
+              <tr class="data-row" data-group="g1"><td style="color:#94a3b8;font-size:11px;padding-left:24px;">&#9203;</td><td class="tc-link">#33200</td><td>Handle Null Parameter Email Error</td><td><span class="pb pb-normal">Normal</span></td><td><div class="h-wrap"><div class="h-bar" style="width:22px;background:#bfdbfe;"></div><span class="h-txt">2.5h</span></div></td></tr>
+              <tr class="data-row" data-group="g1"><td style="color:#94a3b8;font-size:11px;padding-left:24px;">&#9203;</td><td class="tc-link">#33195</td><td>Production Analysis</td><td><span class="pb pb-low">Low</span></td><td><div class="h-wrap"><div class="h-bar" style="width:15px;background:#e2e8f0;"></div><span class="h-txt">1.5h</span></div></td></tr>
+
+              <!-- Prajwol -->
+              <tr class="grp-row" onclick="toggleGroup('g2')">
+                <td colspan="5"><div class="grp-cell">
+                  <span class="garr open" id="arr-g2">&#9658;</span>
+                  <div class="av av2">PS</div>
+                  <span class="u-badge u2">Prajwol Sigdel</span>
+                  <span class="grp-total">13.0h &middot; 4 tickets</span>
+                </div></td>
+              </tr>
+              <tr class="data-row" data-group="g2"><td style="color:#94a3b8;font-size:11px;padding-left:24px;">&#9203;</td><td class="tc-link">#33209</td><td>Appraisal Form Split Sections</td><td><span class="pb pb-high">High</span></td><td><div class="h-wrap"><div class="h-bar" style="width:50px;background:#fef08a;"></div><span class="h-txt">5.5h</span></div></td></tr>
+              <tr class="data-row" data-group="g2"><td style="color:#94a3b8;font-size:11px;padding-left:24px;">&#9203;</td><td class="tc-link">#33201</td><td>Build Ticket Analytics Dashboard</td><td><span class="pb pb-urgent">Urgent</span></td><td><div class="h-wrap"><div class="h-bar" style="width:38px;background:#fecaca;"></div><span class="h-txt">4.0h</span></div></td></tr>
+              <tr class="data-row" data-group="g2"><td style="color:#94a3b8;font-size:11px;padding-left:24px;">&#9203;</td><td class="tc-link">#33197</td><td>Negative Substitute Leave Balance</td><td><span class="pb pb-normal">Normal</span></td><td><div class="h-wrap"><div class="h-bar" style="width:20px;background:#bfdbfe;"></div><span class="h-txt">2.0h</span></div></td></tr>
+              <tr class="data-row" data-group="g2"><td style="color:#94a3b8;font-size:11px;padding-left:24px;">&#9203;</td><td class="tc-link">#33194</td><td>Bulk Mail Not Sending [Subisu]</td><td><span class="pb pb-low">Low</span></td><td><div class="h-wrap"><div class="h-bar" style="width:15px;background:#e2e8f0;"></div><span class="h-txt">1.5h</span></div></td></tr>
+
+              <!-- Asmita -->
+              <tr class="grp-row" onclick="toggleGroup('g3')">
+                <td colspan="5"><div class="grp-cell">
+                  <span class="garr open" id="arr-g3">&#9658;</span>
+                  <div class="av av3">AG</div>
+                  <span class="u-badge u3">Asmita Gautam</span>
+                  <span class="grp-total">10.5h &middot; 3 tickets</span>
+                </div></td>
+              </tr>
+              <tr class="data-row" data-group="g3"><td style="color:#94a3b8;font-size:11px;padding-left:24px;">&#9203;</td><td class="tc-link">#33207</td><td>Employee Import Issue Attendance</td><td><span class="pb pb-urgent">Urgent</span></td><td><div class="h-wrap"><div class="h-bar" style="width:46px;background:#fecaca;"></div><span class="h-txt">5.0h</span></div></td></tr>
+              <tr class="data-row" data-group="g3"><td style="color:#94a3b8;font-size:11px;padding-left:24px;">&#9203;</td><td class="tc-link">#33206</td><td>Retirement Date Display Logic</td><td><span class="pb pb-immediate">Immediate</span></td><td><div class="h-wrap"><div class="h-bar" style="width:32px;background:#fed7aa;"></div><span class="h-txt">3.5h</span></div></td></tr>
+              <tr class="data-row" data-group="g3"><td style="color:#94a3b8;font-size:11px;padding-left:24px;">&#9203;</td><td class="tc-link">#33210</td><td>TDS Performance for Large Records</td><td><span class="pb pb-normal">Normal</span></td><td><div class="h-wrap"><div class="h-bar" style="width:18px;background:#bfdbfe;"></div><span class="h-txt">2.0h</span></div></td></tr>
+
+              <!-- Sudesh -->
+              <tr class="grp-row" onclick="toggleGroup('g4')">
+                <td colspan="5"><div class="grp-cell">
+                  <span class="garr open" id="arr-g4">&#9658;</span>
+                  <div class="av av4">SC</div>
+                  <span class="u-badge u4">Sudesh Chaudhary</span>
+                  <span class="grp-total">5.0h &middot; 2 tickets</span>
+                </div></td>
+              </tr>
+              <tr class="data-row" data-group="g4"><td style="color:#94a3b8;font-size:11px;padding-left:24px;">&#9203;</td><td class="tc-link">#33196</td><td>Public Holiday Attendance Calendar</td><td><span class="pb pb-high">High</span></td><td><div class="h-wrap"><div class="h-bar" style="width:28px;background:#fef08a;"></div><span class="h-txt">3.0h</span></div></td></tr>
+              <tr class="data-row" data-group="g4"><td style="color:#94a3b8;font-size:11px;padding-left:24px;">&#9203;</td><td class="tc-link">#33194</td><td>Bulk Mail Not Sending [Subisu]</td><td><span class="pb pb-normal">Normal</span></td><td><div class="h-wrap"><div class="h-bar" style="width:18px;background:#bfdbfe;"></div><span class="h-txt">2.0h</span></div></td></tr>
+
+              <!-- System/Admin -->
+              <tr class="grp-row" onclick="toggleGroup('g5')">
+                <td colspan="5"><div class="grp-cell">
+                  <span class="garr open" id="arr-g5">&#9658;</span>
+                  <div class="av av5">SY</div>
+                  <span class="u-badge u5">System/Admin</span>
+                  <span class="grp-total">3.0h &middot; 2 tickets</span>
+                </div></td>
+              </tr>
+              <tr class="data-row" data-group="g5"><td style="color:#94a3b8;font-size:11px;padding-left:24px;">&#9203;</td><td class="tc-link">#33208</td><td>PM Requirements for Daily Reporting</td><td><span class="pb pb-normal">Normal</span></td><td><div class="h-wrap"><div class="h-bar" style="width:20px;background:#bfdbfe;"></div><span class="h-txt">2.0h</span></div></td></tr>
+              <tr class="data-row" data-group="g5"><td style="color:#94a3b8;font-size:11px;padding-left:24px;">&#9203;</td><td class="tc-link">#33195</td><td>Production Analysis</td><td><span class="pb pb-low">Low</span></td><td><div class="h-wrap"><div class="h-bar" style="width:10px;background:#e2e8f0;"></div><span class="h-txt">1.0h</span></div></td></tr>
+            </tbody>
+          </table>
+          <div class="t-foot">
+            <span>Showing <strong>16</strong> rows &middot; <strong>5</strong> users</span>
+            <div class="pg">
+              <div class="pg-btn">&laquo;</div>
+              <div class="pg-btn active">1</div>
+              <div class="pg-btn">2</div>
+              <div class="pg-btn">&raquo;</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="right-col">
+
+          <!-- LEADERBOARD -->
+          <div class="panel">
+            <div class="p-hdr"><span class="p-title">&#127942; Hardworker Leaderboard</span></div>
+            <div class="chart-area">
+              <div class="chart-sub">Ranked by total hours &middot; click any bar for priority breakdown</div>
+              <div class="pri-legend">
+                <div class="pli"><div class="pli-dot" style="background:#dc2626;"></div>Urgent</div>
+                <div class="pli"><div class="pli-dot" style="background:#f97316;"></div>Immediate</div>
+                <div class="pli"><div class="pli-dot" style="background:#eab308;"></div>High</div>
+                <div class="pli"><div class="pli-dot" style="background:#2563eb;"></div>Normal</div>
+                <div class="pli"><div class="pli-dot" style="background:#94a3b8;"></div>Low</div>
+              </div>
+
+              <div class="lb-row">
+                <div class="lb-top"><div class="lb-name"><span class="rank rank-1">1</span><div class="av av1">PP</div>Pareekshit Pokharel</div><span class="lb-hours">18.5h</span></div>
+                <div class="sbar" onclick="toggleDrill('d-u1')">
+                  <div class="seg urgent"    style="width:37.8%" data-tip="Urgent &middot; 7.0h">7h</div>
+                  <div class="seg immediate" style="width:18.9%" data-tip="Immediate &middot; 3.5h">3.5h</div>
+                  <div class="seg high"      style="width:21.6%" data-tip="High &middot; 4.0h">4h</div>
+                  <div class="seg normal"    style="width:13.5%" data-tip="Normal &middot; 2.5h">2.5h</div>
+                  <div class="seg low"       style="width:8.2%"  data-tip="Low &middot; 1.5h">1.5h</div>
+                </div>
+                <div class="drill" id="d-u1">
+                  <table><thead><tr><th>Priority</th><th>Hours</th><th>Tickets</th><th>Share</th></tr></thead>
+                  <tbody>
+                    <tr><td><span class="pb pb-urgent">Urgent</span></td><td class="d-hrs">7.0h</td><td>1</td><td>37.8%</td></tr>
+                    <tr><td><span class="pb pb-immediate">Immediate</span></td><td class="d-hrs">3.5h</td><td>1</td><td>18.9%</td></tr>
+                    <tr><td><span class="pb pb-high">High</span></td><td class="d-hrs">4.0h</td><td>1</td><td>21.6%</td></tr>
+                    <tr><td><span class="pb pb-normal">Normal</span></td><td class="d-hrs">2.5h</td><td>1</td><td>13.5%</td></tr>
+                    <tr><td><span class="pb pb-low">Low</span></td><td class="d-hrs">1.5h</td><td>1</td><td>8.2%</td></tr>
+                  </tbody></table>
+                </div>
+              </div>
+
+              <div class="lb-row">
+                <div class="lb-top"><div class="lb-name"><span class="rank rank-2">2</span><div class="av av2">PS</div>Prajwol Sigdel</div><span class="lb-hours">13.0h</span></div>
+                <div class="sbar" onclick="toggleDrill('d-u2')">
+                  <div class="seg urgent" style="width:30.8%" data-tip="Urgent &middot; 4.0h">4h</div>
+                  <div class="seg high"   style="width:42.3%" data-tip="High &middot; 5.5h">5.5h</div>
+                  <div class="seg normal" style="width:15.4%" data-tip="Normal &middot; 2.0h">2h</div>
+                  <div class="seg low"    style="width:11.5%" data-tip="Low &middot; 1.5h">1.5h</div>
+                </div>
+                <div class="drill" id="d-u2">
+                  <table><thead><tr><th>Priority</th><th>Hours</th><th>Tickets</th><th>Share</th></tr></thead>
+                  <tbody>
+                    <tr><td><span class="pb pb-urgent">Urgent</span></td><td class="d-hrs">4.0h</td><td>1</td><td>30.8%</td></tr>
+                    <tr><td><span class="pb pb-high">High</span></td><td class="d-hrs">5.5h</td><td>1</td><td>42.3%</td></tr>
+                    <tr><td><span class="pb pb-normal">Normal</span></td><td class="d-hrs">2.0h</td><td>1</td><td>15.4%</td></tr>
+                    <tr><td><span class="pb pb-low">Low</span></td><td class="d-hrs">1.5h</td><td>1</td><td>11.5%</td></tr>
+                  </tbody></table>
+                </div>
+              </div>
+
+              <div class="lb-row">
+                <div class="lb-top"><div class="lb-name"><span class="rank rank-3">3</span><div class="av av3">AG</div>Asmita Gautam</div><span class="lb-hours">10.5h</span></div>
+                <div class="sbar" onclick="toggleDrill('d-u3')">
+                  <div class="seg urgent"    style="width:47.6%" data-tip="Urgent &middot; 5.0h">5h</div>
+                  <div class="seg immediate" style="width:33.3%" data-tip="Immediate &middot; 3.5h">3.5h</div>
+                  <div class="seg normal"    style="width:19.1%" data-tip="Normal &middot; 2.0h">2h</div>
+                </div>
+                <div class="drill" id="d-u3">
+                  <table><thead><tr><th>Priority</th><th>Hours</th><th>Tickets</th><th>Share</th></tr></thead>
+                  <tbody>
+                    <tr><td><span class="pb pb-urgent">Urgent</span></td><td class="d-hrs">5.0h</td><td>1</td><td>47.6%</td></tr>
+                    <tr><td><span class="pb pb-immediate">Immediate</span></td><td class="d-hrs">3.5h</td><td>1</td><td>33.3%</td></tr>
+                    <tr><td><span class="pb pb-normal">Normal</span></td><td class="d-hrs">2.0h</td><td>1</td><td>19.1%</td></tr>
+                  </tbody></table>
+                </div>
+              </div>
+
+              <div class="lb-row">
+                <div class="lb-top"><div class="lb-name"><span class="rank rank-x">4</span><div class="av av4">SC</div>Sudesh Chaudhary</div><span class="lb-hours">5.0h</span></div>
+                <div class="sbar" onclick="toggleDrill('d-u4')">
+                  <div class="seg high"   style="width:60%" data-tip="High &middot; 3.0h">3h</div>
+                  <div class="seg normal" style="width:40%" data-tip="Normal &middot; 2.0h">2h</div>
+                </div>
+                <div class="drill" id="d-u4">
+                  <table><thead><tr><th>Priority</th><th>Hours</th><th>Tickets</th><th>Share</th></tr></thead>
+                  <tbody>
+                    <tr><td><span class="pb pb-high">High</span></td><td class="d-hrs">3.0h</td><td>1</td><td>60%</td></tr>
+                    <tr><td><span class="pb pb-normal">Normal</span></td><td class="d-hrs">2.0h</td><td>1</td><td>40%</td></tr>
+                  </tbody></table>
+                </div>
+              </div>
+
+              <div class="lb-row">
+                <div class="lb-top"><div class="lb-name"><span class="rank rank-x">5</span><div class="av av5">SY</div>System/Admin</div><span class="lb-hours">3.0h</span></div>
+                <div class="sbar">
+                  <div class="seg normal" style="width:66.7%" data-tip="Normal &middot; 2.0h">2h</div>
+                  <div class="seg low"    style="width:33.3%" data-tip="Low &middot; 1.0h">1h</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- DONUT -->
+          <div class="panel">
+            <div class="p-hdr"><span class="p-title">Share Distribution by User</span></div>
+            <div class="donut-wrap">
+              <div class="donut-content">
+                <svg class="donut-svg" width="110" height="110" viewBox="0 0 110 110">
+                  <circle cx="55" cy="55" r="40" fill="none" stroke="#2563eb" stroke-width="20" stroke-dasharray="92.9 158.1" stroke-dashoffset="0" transform="rotate(-90 55 55)"/>
+                  <circle cx="55" cy="55" r="40" fill="none" stroke="#16a34a" stroke-width="20" stroke-dasharray="65.3 185.7" stroke-dashoffset="-92.9" transform="rotate(-90 55 55)"/>
+                  <circle cx="55" cy="55" r="40" fill="none" stroke="#f97316" stroke-width="20" stroke-dasharray="52.8 198.2" stroke-dashoffset="-158.2" transform="rotate(-90 55 55)"/>
+                  <circle cx="55" cy="55" r="40" fill="none" stroke="#7c3aed" stroke-width="20" stroke-dasharray="25.1 225.9" stroke-dashoffset="-211" transform="rotate(-90 55 55)"/>
+                  <circle cx="55" cy="55" r="40" fill="none" stroke="#94a3b8" stroke-width="20" stroke-dasharray="15.1 235.9" stroke-dashoffset="-236.1" transform="rotate(-90 55 55)"/>
+                  <circle cx="55" cy="55" r="28" fill="white"/>
+                  <text x="55" y="51" text-anchor="middle" font-size="11" font-weight="800" fill="#1a2b4a">50h</text>
+                  <text x="55" y="63" text-anchor="middle" font-size="9" fill="#64748b">5 users</text>
+                </svg>
+                <div class="d-legend">
+                  <div class="d-leg-item"><div class="d-dot" style="background:#2563eb;"></div><span class="d-name">Pareekshit Pokharel</span><span class="d-pct">37%</span></div>
+                  <div class="d-leg-item"><div class="d-dot" style="background:#16a34a;"></div><span class="d-name">Prajwol Sigdel</span><span class="d-pct">26%</span></div>
+                  <div class="d-leg-item"><div class="d-dot" style="background:#f97316;"></div><span class="d-name">Asmita Gautam</span><span class="d-pct">21%</span></div>
+                  <div class="d-leg-item"><div class="d-dot" style="background:#7c3aed;"></div><span class="d-name">Sudesh Chaudhary</span><span class="d-pct">10%</span></div>
+                  <div class="d-leg-item"><div class="d-dot" style="background:#94a3b8;"></div><span class="d-name">System/Admin</span><span class="d-pct">6%</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- STACKED PER USER -->
+          <div class="panel">
+            <div class="p-hdr"><span class="p-title">Hours by Priority per User</span></div>
+            <div class="chart-area">
+              <div class="chart-sub">Click any bar to see priority breakdown</div>
+              <div class="pri-legend">
+                <div class="pli"><div class="pli-dot" style="background:#dc2626;"></div>Urgent</div>
+                <div class="pli"><div class="pli-dot" style="background:#f97316;"></div>Immediate</div>
+                <div class="pli"><div class="pli-dot" style="background:#eab308;"></div>High</div>
+                <div class="pli"><div class="pli-dot" style="background:#2563eb;"></div>Normal</div>
+                <div class="pli"><div class="pli-dot" style="background:#94a3b8;"></div>Low</div>
+              </div>
+
+              <div class="u-bar-row">
+                <div class="u-bar-top"><span>Pareekshit Pokharel</span><span style="font-weight:800;color:var(--navy);">18.5h</span></div>
+                <div class="u-sbar" onclick="toggleDD('dd-u1')">
+                  <div class="seg urgent" style="width:37.8%" data-tip="Urgent &middot; 7h">7h</div>
+                  <div class="seg immediate" style="width:18.9%" data-tip="Immediate &middot; 3.5h">3.5h</div>
+                  <div class="seg high" style="width:21.6%" data-tip="High &middot; 4h">4h</div>
+                  <div class="seg normal" style="width:13.5%" data-tip="Normal &middot; 2.5h">2.5h</div>
+                  <div class="seg low" style="width:8.2%" data-tip="Low &middot; 1.5h">1.5h</div>
+                </div>
+                <div class="dd-panel" id="dd-u1">
+                  <div class="dd-grid">
+                    <div class="dd-cell"><div class="dd-lbl" style="background:#fee2e2;color:#b91c1c;">Urgent</div><div class="dd-val">7.0h</div><div class="dd-sub">1 tkt</div></div>
+                    <div class="dd-cell"><div class="dd-lbl" style="background:#ffedd5;color:#c2410c;">Immed.</div><div class="dd-val">3.5h</div><div class="dd-sub">1 tkt</div></div>
+                    <div class="dd-cell"><div class="dd-lbl" style="background:#fef9c3;color:#854d0e;">High</div><div class="dd-val">4.0h</div><div class="dd-sub">1 tkt</div></div>
+                    <div class="dd-cell"><div class="dd-lbl" style="background:#dbeafe;color:#1d4ed8;">Normal</div><div class="dd-val">2.5h</div><div class="dd-sub">1 tkt</div></div>
+                    <div class="dd-cell"><div class="dd-lbl" style="background:#f1f5f9;color:#475569;">Low</div><div class="dd-val">1.5h</div><div class="dd-sub">1 tkt</div></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="u-bar-row">
+                <div class="u-bar-top"><span>Prajwol Sigdel</span><span style="font-weight:800;color:var(--navy);">13.0h</span></div>
+                <div class="u-sbar" onclick="toggleDD('dd-u2')">
+                  <div class="seg urgent" style="width:30.8%" data-tip="Urgent &middot; 4h">4h</div>
+                  <div class="seg high" style="width:42.3%" data-tip="High &middot; 5.5h">5.5h</div>
+                  <div class="seg normal" style="width:15.4%" data-tip="Normal &middot; 2h">2h</div>
+                  <div class="seg low" style="width:11.5%" data-tip="Low &middot; 1.5h">1.5h</div>
+                </div>
+                <div class="dd-panel" id="dd-u2">
+                  <div class="dd-grid">
+                    <div class="dd-cell"><div class="dd-lbl" style="background:#fee2e2;color:#b91c1c;">Urgent</div><div class="dd-val">4.0h</div><div class="dd-sub">1 tkt</div></div>
+                    <div class="dd-cell"><div class="dd-lbl" style="background:#ffedd5;color:#c2410c;">Immed.</div><div class="dd-val">0h</div><div class="dd-sub">&mdash;</div></div>
+                    <div class="dd-cell"><div class="dd-lbl" style="background:#fef9c3;color:#854d0e;">High</div><div class="dd-val">5.5h</div><div class="dd-sub">1 tkt</div></div>
+                    <div class="dd-cell"><div class="dd-lbl" style="background:#dbeafe;color:#1d4ed8;">Normal</div><div class="dd-val">2.0h</div><div class="dd-sub">1 tkt</div></div>
+                    <div class="dd-cell"><div class="dd-lbl" style="background:#f1f5f9;color:#475569;">Low</div><div class="dd-val">1.5h</div><div class="dd-sub">1 tkt</div></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="u-bar-row">
+                <div class="u-bar-top"><span>Asmita Gautam</span><span style="font-weight:800;color:var(--navy);">10.5h</span></div>
+                <div class="u-sbar" onclick="toggleDD('dd-u3')">
+                  <div class="seg urgent" style="width:47.6%" data-tip="Urgent &middot; 5h">5h</div>
+                  <div class="seg immediate" style="width:33.3%" data-tip="Immediate &middot; 3.5h">3.5h</div>
+                  <div class="seg normal" style="width:19.1%" data-tip="Normal &middot; 2h">2h</div>
+                </div>
+                <div class="dd-panel" id="dd-u3">
+                  <div class="dd-grid">
+                    <div class="dd-cell"><div class="dd-lbl" style="background:#fee2e2;color:#b91c1c;">Urgent</div><div class="dd-val">5.0h</div><div class="dd-sub">1 tkt</div></div>
+                    <div class="dd-cell"><div class="dd-lbl" style="background:#ffedd5;color:#c2410c;">Immed.</div><div class="dd-val">3.5h</div><div class="dd-sub">1 tkt</div></div>
+                    <div class="dd-cell"><div class="dd-lbl" style="background:#fef9c3;color:#854d0e;">High</div><div class="dd-val">0h</div><div class="dd-sub">&mdash;</div></div>
+                    <div class="dd-cell"><div class="dd-lbl" style="background:#dbeafe;color:#1d4ed8;">Normal</div><div class="dd-val">2.0h</div><div class="dd-sub">1 tkt</div></div>
+                    <div class="dd-cell"><div class="dd-lbl" style="background:#f1f5f9;color:#475569;">Low</div><div class="dd-val">0h</div><div class="dd-sub">&mdash;</div></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="u-bar-row">
+                <div class="u-bar-top"><span>Sudesh Chaudhary</span><span style="font-weight:800;color:var(--navy);">5.0h</span></div>
+                <div class="u-sbar" onclick="toggleDD('dd-u4')">
+                  <div class="seg high" style="width:60%" data-tip="High &middot; 3h">3h</div>
+                  <div class="seg normal" style="width:40%" data-tip="Normal &middot; 2h">2h</div>
+                </div>
+                <div class="dd-panel" id="dd-u4">
+                  <div class="dd-grid">
+                    <div class="dd-cell"><div class="dd-lbl" style="background:#fee2e2;color:#b91c1c;">Urgent</div><div class="dd-val">0h</div><div class="dd-sub">&mdash;</div></div>
+                    <div class="dd-cell"><div class="dd-lbl" style="background:#ffedd5;color:#c2410c;">Immed.</div><div class="dd-val">0h</div><div class="dd-sub">&mdash;</div></div>
+                    <div class="dd-cell"><div class="dd-lbl" style="background:#fef9c3;color:#854d0e;">High</div><div class="dd-val">3.0h</div><div class="dd-sub">1 tkt</div></div>
+                    <div class="dd-cell"><div class="dd-lbl" style="background:#dbeafe;color:#1d4ed8;">Normal</div><div class="dd-val">2.0h</div><div class="dd-sub">1 tkt</div></div>
+                    <div class="dd-cell"><div class="dd-lbl" style="background:#f1f5f9;color:#475569;">Low</div><div class="dd-val">0h</div><div class="dd-sub">&mdash;</div></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="u-bar-row">
+                <div class="u-bar-top"><span>System/Admin</span><span style="font-weight:800;color:var(--navy);">3.0h</span></div>
+                <div class="u-sbar">
+                  <div class="seg normal" style="width:66.7%" data-tip="Normal &middot; 2h">2h</div>
+                  <div class="seg low" style="width:33.3%" data-tip="Low &middot; 1h">1h</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const groupState = { g1:true, g2:true, g3:true, g4:true, g5:true };
+
+  function toggleGroup(id) {
+    groupState[id] = !groupState[id];
+    const open = groupState[id];
+    document.getElementById('arr-' + id).classList.toggle('open', open);
+    document.querySelectorAll(`[data-group="${id}"]`).forEach(r => r.classList.toggle('hidden', !open));
+  }
+
+  function expandAll() {
+    Object.keys(groupState).forEach(id => {
+      groupState[id] = true;
+      document.getElementById('arr-' + id).classList.add('open');
+      document.querySelectorAll(`[data-group="${id}"]`).forEach(r => r.classList.remove('hidden'));
+    });
+  }
+
+  function switchTab(el) {
+    document.querySelectorAll('.comp-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  function toggleDrill(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const isOpen = el.classList.contains('open');
+    document.querySelectorAll('.drill').forEach(d => d.classList.remove('open'));
+    if (!isOpen) el.classList.add('open');
+  }
+
+  function toggleDD(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const isOpen = el.classList.contains('open');
+    document.querySelectorAll('.dd-panel').forEach(d => d.classList.remove('open'));
+    if (!isOpen) el.classList.add('open');
+  }
+
+  function applyFilter() {
+    const s = document.getElementById('start-date').value;
+    const e = document.getElementById('end-date').value;
+    if (!s || !e) return;
+    const fmt = d => new Date(d).toLocaleDateString('en-GB', { day:'numeric', month:'short', year:'numeric' });
+    document.getElementById('filter-info').innerHTML =
+      `Period: <strong>${fmt(s)} &ndash; ${fmt(e)}</strong> &middot; Source: <strong>dbo.pm_vwTaskReport</strong>`;
+  }
+</script>
+</body>
+</html>

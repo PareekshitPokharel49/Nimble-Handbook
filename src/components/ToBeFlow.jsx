@@ -165,7 +165,24 @@ export default function ToBeFlow() {
         </div>
         <ArrowRow dev={true} />
 
-        {/* ROW 4 — Dev works */}
+        {/* ROW 4A — Dev Gate 1 */}
+        <div style={S.laneRow(130)}>
+          <div style={S.cell(COLS.csd)} /><div style={S.cell(COLS.sa)} />
+          <div style={S.cell(COLS.dev)}>
+            <div style={S.step('#FEF9C3','#713F12','#FDE047',{fontWeight:700})}>
+              <b style={S.stepTitle}>◆ Dev Gate 1 — Before starting work</b>
+              <ul style={S.ul}>
+                <li style={S.li}><b>Verify SA fields are filled</b> — Description, Expected Behaviour, Acceptance Criteria, Steps to Replicate (for bugs) must all be present before picking up the ticket</li>
+                <li style={S.li}><b>Ticket must be ≤ 8 hours</b> — if the scope feels larger, stop and ask SA to break it into sub-tickets before beginning</li>
+              </ul>
+            </div>
+            <span style={S.badge('#FEE2E2','#B91C1C')}>✗ SA fields missing or ticket too large — return to SA</span>
+          </div>
+          <div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.deploy)} />
+        </div>
+        <ArrowRow dev={true} />
+
+        {/* ROW 4B — Dev works */}
         <div style={S.laneRow()}>
           <div style={S.cell(COLS.csd)} /><div style={S.cell(COLS.sa)} />
           <div style={S.cell(COLS.dev)}>
