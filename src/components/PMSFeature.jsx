@@ -87,12 +87,56 @@ const features = [
     file: '/nimble_task_reporting_2.html',
     label: 'Open Wireframe in Full Screen ↗',
   },
+  {
+    num: 9,
+    title: 'Task Engagement Status — Stage-Wise Time Breakdown',
+    desc: 'A new view under Reporting that shows how much time each ticket spent in each stage of the workflow — SA Analysis, Development, QA Testing, and Release. Managers can identify where tickets are spending the most time, spot bottlenecks across the team, and compare stage ratios at a glance using stacked bar visualizations per ticket.',
+    cards: [
+      { title: 'Stage Breakdown per Ticket', desc: 'Each ticket row shows a stacked horizontal bar divided into SA, Dev, QA, and Release segments — proportional to actual time spent. Filterable by department and user. Summary row shows overall stage distribution across all tickets.', color: '#EFF6FF', text: '#1D4ED8' },
+      { title: 'Expandable Per-Person Detail', desc: 'Click any ticket row to expand a four-card panel showing exactly who worked in each stage, how many hours, and what they did. Helps SA and managers track individual contribution per stage without opening each ticket separately.', color: '#F5F3FF', text: '#5B21B6' },
+    ],
+    file: '/nimble_task_engagement.html',
+    label: 'Open Wireframe in Full Screen ↗',
+  },
+  {
+    num: 10,
+    title: 'Daily Activity Reporter — Keyboard-First Log Entry',
+    desc: 'A redesigned Daily Log Book UI built for speed. Team members can log all their daily activities without touching the mouse — Tab moves between Activity, Time, and Customer fields, and a new row is added automatically when Tab is pressed on the last field. Entries are grouped by day and submitted as a single daily record.',
+    cards: [
+      { title: 'Keyboard-First Entry Grid', desc: 'Each row has three fields: Activity (free text), Time (HH:MM auto-formatted), and Customer/Project tag. Tab navigates all fields. A new row is auto-added when Tab is pressed on the last Customer field. Backspace on an empty Activity row removes it.', color: '#F0FDF4', text: '#15803D' },
+      { title: 'Day Grouping & History', desc: 'One submit locks the full day\'s log as a single grouped record. Past days appear in a collapsible history panel below. A live summary strip shows total hours and entry count for the current day as you type.', color: '#FFF7ED', text: '#C2410C' },
+    ],
+    file: '/nimble_daily_log_v2.html',
+    label: 'Open Wireframe in Full Screen ↗',
+  },
+  {
+    num: 11,
+    title: 'Task Planner — Daily Planning Board',
+    desc: 'A personal daily task planner for team members. Organized by date tabs, each day shows a progress bar, a quick-add task bar, and two sections — Pending and Completed. Tasks carry estimated time, priority, and a done timestamp. The planner integrates directly with the ticketing system via a Convert to Ticket modal and supports screenshot capture per task.',
+    cards: [
+      { title: 'Date-Based Planning & Progress', desc: 'Switch between days using date tabs (Mon–Thu). Each day shows a progress bar (X/Y done), a quick-add bar with title, HH:MM estimate, and priority. Tasks are split into Pending and Completed sections with meta pills for time and priority.', color: '#EFF6FF', text: '#1D4ED8' },
+      { title: 'Convert to Ticket & Screenshot Capture', desc: 'Any task can be converted into a structured ticket — type selector (Feature/Bug/Task), pre-filled fields, Description, Acceptance Criteria, Project, and Assignee. Screenshot panel supports file upload with thumbnail preview. A success state shows a generated ticket ID badge on the task card.', color: '#F0FDF4', text: '#15803D' },
+    ],
+    file: '/nimble_task_planner_2.html',
+    label: 'Open Wireframe in Full Screen ↗',
+  },
+  {
+    num: 12,
+    title: 'Smart Comment Format — Auto-fill on Developer Selection',
+    desc: 'When adding a comment on a ticket, the comment box automatically detects the ticket type (Bug or Feature — already set by SA) and pre-fills the correct structured comment format the moment a developer is selected as the assignee. No manual format selection needed — the right template appears instantly based on what SA already defined.',
+    cards: [
+      { title: 'Auto-detected Ticket Type', desc: 'The system reads the ticket type set by SA (Bug or Feature). When a developer is selected, the comment box switches to the matching format automatically — Bug Fix format for bugs, Feature Implementation format for features.', color: '#EFF6FF', text: '#1D4ED8' },
+      { title: 'Pre-filled Comment Template', desc: 'The comment box loads with the structured template already in place — labelled fields for Description, Module, Code Changes, Impact Analysis, Tested Locally, and Status (locked to "Ready for QA"). Developer fills in the blanks and submits — no copy-pasting or formatting from scratch.', color: '#F0FDF4', text: '#15803D' },
+    ],
+    file: '/nimble_smart_comment.html',
+    label: 'Open Wireframe in Full Screen ↗',
+  },
 ]
 
 export default function PMSFeature() {
   return (
     <>
-      <h2 className="section-title">8. PMS Feature Requests</h2>
+      <h2 className="section-title">9. PMS Feature Requests</h2>
       <p className="section-subtitle">Wireframe proposals for Nimble HRMIS — ESS Portal enhancements</p>
 
       {features.map((f, i) => (

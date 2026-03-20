@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nimble - Daily Activity Reporter</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root {
+    --navy:#1a2b4a; --navy-l:#243555; --accent:#f97316;
+    --text:#1e293b; --muted:#64748b; --border:#e2e8f0; --bg:#f8fafc;
+  }
+  body { font-family:'Segoe UI',sans-serif; font-size:13px; background:var(--bg); color:var(--text); display:flex; flex-direction:column; height:100vh; overflow:hidden; }
+
+  .topbar { height:46px; background:var(--navy); display:flex; align-items:center; padding:0 14px; gap:12px; flex-shrink:0; }
+  .tb-mod { color:#94a3b8; font-size:12px; display:flex; align-items:center; gap:5px; }
+  .tb-mod span { color:#fff; }
+  .tb-search { flex:1; max-width:320px; margin:0 auto; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15); border-radius:4px; padding:5px 12px; color:#fff; font-size:12px; outline:none; }
+  .tb-search::placeholder { color:#94a3b8; }
+  .tb-right { margin-left:auto; display:flex; align-items:center; gap:14px; }
+  .tb-av { width:27px; height:27px; border-radius:50%; background:#e2e8f0; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:10px; color:var(--navy); }
+  .tb-user { color:#e2e8f0; font-size:12px; }
+  .tb-fy { color:#cbd5e1; font-size:11px; }
+  .layout { display:flex; flex:1; overflow:hidden; }
+
+  .sidebar { width:210px; background:var(--navy); flex-shrink:0; overflow-y:auto; display:flex; flex-direction:column; padding-bottom:12px; }
+  .sidebar::-webkit-scrollbar { width:3px; }
+  .sidebar::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); }
+  .s-top { padding:9px 12px; border-bottom:1px solid rgba(255,255,255,0.07); display:flex; align-items:center; gap:7px; }
+  .s-top span { color:#cbd5e1; font-size:12px; }
+  .nav { display:flex; align-items:center; gap:9px; padding:8px 13px; color:#94a3b8; font-size:12px; cursor:pointer; border-left:3px solid transparent; }
+  .nav:hover { background:rgba(255,255,255,0.04); color:#e2e8f0; }
+  .nav.open { color:#fff; background:rgba(255,255,255,0.05); }
+  .nav .ch { margin-left:auto; font-size:10px; color:#475569; }
+  .sub { background:rgba(0,0,0,0.12); }
+  .sub-i { display:flex; align-items:center; gap:7px; padding:7px 13px 7px 34px; color:#94a3b8; font-size:12px; cursor:pointer; border-left:3px solid transparent; }
+  .sub-i.active { color:#fff; border-left-color:var(--accent); background:rgba(255,255,255,0.05); }
+  .sub-i .dot { width:5px; height:5px; border-radius:50%; background:#475569; flex-shrink:0; }
+  .sub-i.active .dot { background:var(--accent); }
+  .s-logo { margin-top:auto; padding:10px 13px; border-top:1px solid rgba(255,255,255,0.07); display:flex; align-items:center; gap:9px; }
+  .logo-c { width:30px; height:30px; background:var(--accent); border-radius:7px; display:flex; align-items:center; justify-content:center; font-weight:900; color:#fff; font-size:13px; }
+  .logo-t { color:#e2e8f0; font-size:11px; font-weight:600; line-height:1.3; }
+  .logo-t small { color:#64748b; font-size:10px; font-weight:400; }
+
+  .main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+  .page-hdr { background:#fff; border-bottom:1px solid var(--border); padding:0 20px; height:42px; display:flex; align-items:center; flex-shrink:0; }
+  .breadcrumb { font-size:12px; color:var(--muted); }
+  .breadcrumb strong { color:var(--text); }
+
+  .content { flex:1; overflow-y:auto; padding:20px 28px; display:flex; flex-direction:column; gap:18px; }
+  .content::-webkit-scrollbar { width:6px; }
+  .content::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:3px; }
+
+  /* Date navigator */
+  .date-nav { display:flex; align-items:center; gap:14px; }
+  .date-btn { width:30px; height:30px; border:1px solid var(--border); border-radius:6px; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; color:var(--muted); }
+  .date-btn:hover { background:var(--bg); color:var(--text); }
+  .date-label { font-size:20px; font-weight:800; color:var(--text); }
+  .date-sub { font-size:12px; color:var(--muted); font-weight:400; margin-left:4px; }
+  .today-btn { padding:4px 12px; border:1px solid var(--border); border-radius:4px; background:#fff; font-size:11px; font-weight:600; cursor:pointer; color:var(--muted); font-family:inherit; }
+  .today-btn:hover { background:var(--bg); }
+
+  /* Summary strip */
+  .summary-strip { display:flex; gap:16px; align-items:center; }
+  .sum-card { background:#fff; border:1px solid var(--border); border-radius:6px; padding:10px 18px; display:flex; flex-direction:column; }
+  .sum-val { font-size:20px; font-weight:800; color:var(--navy); }
+  .sum-lbl { font-size:10px; color:var(--muted); margin-top:1px; }
+  .sum-card.highlight { border-color:#bfdbfe; background:#eff6ff; }
+  .sum-card.highlight .sum-val { color:#1d4ed8; }
+
+  /* Entry grid */
+  .entry-panel { background:#fff; border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+  .entry-panel-hdr { padding:12px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+  .entry-panel-title { font-size:13px; font-weight:700; color:var(--text); }
+  .entry-panel-hint { font-size:11px; color:var(--muted); }
+
+  .entry-table { width:100%; border-collapse:collapse; }
+  .entry-table thead tr { background:#f8fafc; }
+  .entry-table th { padding:8px 10px; text-align:left; font-size:11px; font-weight:600; color:var(--muted); border-bottom:1px solid var(--border); }
+  .entry-table tbody tr { border-bottom:1px solid #f1f5f9; }
+  .entry-table tbody tr:last-child { border-bottom:none; }
+  .entry-table tbody tr.active-row { background:#fafbff; }
+  .entry-table td { padding:6px 8px; vertical-align:middle; }
+
+  .row-num { font-size:11px; color:#94a3b8; font-weight:600; text-align:center; width:28px; }
+
+  .act-input { width:100%; border:none; outline:none; font-size:13px; font-family:inherit; color:var(--text); background:transparent; padding:5px 4px; }
+  .act-input::placeholder { color:#cbd5e1; }
+  .act-input:focus { background:#fff; border-radius:3px; outline:2px solid #bfdbfe; outline-offset:-1px; }
+
+  .time-input { width:72px; border:1px solid var(--border); border-radius:4px; outline:none; font-size:12px; font-family:'Courier New',monospace; color:var(--text); background:#fff; padding:5px 8px; text-align:center; }
+  .time-input::placeholder { color:#cbd5e1; }
+  .time-input:focus { border-color:#93c5fd; }
+
+  .cust-select { border:1px solid var(--border); border-radius:4px; outline:none; font-size:12px; font-family:inherit; color:var(--text); background:#fff; padding:5px 8px; min-width:120px; }
+  .cust-select:focus { border-color:#93c5fd; }
+
+  .del-btn { width:24px; height:24px; border:none; background:none; cursor:pointer; color:#cbd5e1; font-size:14px; border-radius:4px; display:flex; align-items:center; justify-content:center; }
+  .del-btn:hover { background:#fee2e2; color:#dc2626; }
+
+  .add-row-btn { width:100%; padding:8px; border:none; background:none; cursor:pointer; font-size:12px; color:var(--muted); text-align:left; padding-left:16px; font-family:inherit; }
+  .add-row-btn:hover { background:#f8fafc; color:var(--text); }
+
+  /* Keyboard hints */
+  .kbd-hints { display:flex; gap:16px; align-items:center; padding:8px 16px; border-top:1px solid var(--border); background:#f8fafc; flex-wrap:wrap; }
+  .kbd-hint { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--muted); }
+  .kbd { display:inline-flex; padding:2px 6px; background:#fff; border:1px solid #d1d5db; border-radius:3px; font-size:10px; font-weight:600; color:#374151; box-shadow:0 1px 0 #d1d5db; }
+
+  /* Submit row */
+  .submit-row { display:flex; align-items:center; gap:10px; }
+  .submit-btn { padding:9px 24px; background:var(--navy); color:#fff; border:none; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .submit-btn:hover { background:var(--navy-l); }
+  .submit-note { font-size:12px; color:var(--muted); }
+
+  /* Logged entries (already submitted) */
+  .logged-section { display:flex; flex-direction:column; gap:0; }
+  .logged-day { border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+  .logged-day-hdr { padding:10px 16px; background:#fff; display:flex; align-items:center; justify-content:space-between; cursor:pointer; }
+  .logged-day-hdr:hover { background:#f8fafc; }
+  .logged-day-title { font-size:13px; font-weight:700; color:var(--text); }
+  .logged-day-meta { font-size:11px; color:var(--muted); }
+  .logged-entries { border-top:1px solid var(--border); }
+  .log-entry { display:flex; align-items:flex-start; gap:12px; padding:10px 16px; border-bottom:1px solid #f1f5f9; }
+  .log-entry:last-child { border-bottom:none; }
+  .log-num { font-size:11px; color:#94a3b8; font-weight:600; min-width:18px; padding-top:2px; }
+  .log-activity { font-size:13px; color:var(--text); flex:1; line-height:1.5; }
+  .log-time { background:#dbeafe; color:#1d4ed8; font-size:11px; font-weight:700; padding:2px 8px; border-radius:4px; white-space:nowrap; font-family:'Courier New',monospace; }
+  .log-cust { background:#f0fdf4; color:#15803d; font-size:11px; font-weight:600; padding:2px 8px; border-radius:4px; white-space:nowrap; }
+
+  .section-label { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.6px; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="tb-mod">&#9776; Modules <span style="color:#475569;">&raquo;</span> <span>ESS Portal</span></div>
+  <input class="tb-search" type="text" placeholder="Search...">
+  <div class="tb-right">
+    <span class="tb-fy">FY: 2082-2083 | LY: 2082-2083</span>
+    <span style="color:#94a3b8;">&#128276;</span>
+    <div class="tb-av">PP</div>
+    <span class="tb-user">Pareekshit Pokharel</span>
+    <span style="color:#94a3b8;">&#9660;</span>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="s-top"><span style="color:#94a3b8;">&#9889;</span><span>Main Dashboard</span></div>
+    <div class="nav"><span>&#127968;</span> Dashboard</div>
+    <div class="nav"><span>&#9881;</span> Custom Menu <span class="ch">&#8250;</span></div>
+    <div class="nav"><span>&#128203;</span> Quick Links <span class="ch">&#8250;</span></div>
+    <div class="nav"><span>&#10003;</span> My Tasks <span class="ch">&#8250;</span></div>
+    <div class="nav"><span>&#128197;</span> Attendance <span class="ch">&#8250;</span></div>
+    <div class="nav"><span>&#127807;</span> Leave and Fieldwork <span class="ch">&#8250;</span></div>
+    <div class="nav"><span>&#9992;</span> Travel and TADA <span class="ch">&#8250;</span></div>
+    <div class="nav"><span>&#128221;</span> Request and Claims <span class="ch">&#8250;</span></div>
+    <div class="nav"><span>&#9889;</span> Activity and Response <span class="ch">&#8250;</span></div>
+    <div class="nav"><span>&#128682;</span> Exit Process <span class="ch">&#8250;</span></div>
+    <div class="nav"><span>&#127919;</span> Goals and Appraisal <span class="ch">&#8250;</span></div>
+    <div class="nav"><span>&#128202;</span> Employee Development <span class="ch">&#8250;</span></div>
+    <div class="nav"><span>&#9199;</span> More Activities <span class="ch">&#8250;</span></div>
+    <div class="nav open"><span>&#128202;</span> Reporting <span class="ch" style="transform:rotate(90deg)">&#8250;</span></div>
+    <div class="sub">
+      <div class="sub-i active"><span class="dot"></span> Daily Log Book</div>
+      <div class="sub-i"><span class="dot"></span> Work Log Report</div>
+      <div class="sub-i"><span class="dot"></span> Dashboard</div>
+      <div class="sub-i"><span class="dot"></span> Task Engagement</div>
+    </div>
+    <div class="s-logo">
+      <div class="logo-c">N</div>
+      <div class="logo-t">Nimble<br><small>Infosys</small></div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="page-hdr">
+      <span class="breadcrumb">Reporting &raquo; <strong>Daily Activity Log</strong></span>
+    </div>
+
+    <div class="content">
+
+      <!-- Date nav -->
+      <div class="date-nav">
+        <button class="date-btn" onclick="changeDay(-1)">&#8592;</button>
+        <div>
+          <span class="date-label" id="date-label">Thursday, 19 Mar 2026</span>
+          <span class="date-sub" id="day-badge">Today</span>
+        </div>
+        <button class="date-btn" onclick="changeDay(1)">&#8594;</button>
+        <button class="today-btn" onclick="goToday()">Go to Today</button>
+      </div>
+
+      <!-- Summary strip -->
+      <div class="summary-strip">
+        <div class="sum-card highlight">
+          <div class="sum-val" id="total-hrs">0:00</div>
+          <div class="sum-lbl">Total hours today</div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-val" id="entry-count">0</div>
+          <div class="sum-lbl">Entries logged</div>
+        </div>
+        <div class="sum-card">
+          <div class="sum-val" style="color:#16a34a;">8:00</div>
+          <div class="sum-lbl">Expected daily hours</div>
+        </div>
+      </div>
+
+      <!-- Entry panel -->
+      <div class="entry-panel">
+        <div class="entry-panel-hdr">
+          <span class="entry-panel-title">&#9997; Log Today's Activities</span>
+          <span class="entry-panel-hint">Fill in what you worked on &mdash; use Tab to move between fields</span>
+        </div>
+
+        <table class="entry-table">
+          <thead>
+            <tr>
+              <th style="width:28px;">#</th>
+              <th>Activity</th>
+              <th style="width:90px;">Time (HH:MM)</th>
+              <th style="width:140px;">Customer / Project</th>
+              <th style="width:32px;"></th>
+            </tr>
+          </thead>
+          <tbody id="entry-body">
+            <!-- Rows injected by JS -->
+          </tbody>
+        </table>
+
+        <button class="add-row-btn" onclick="addRow()">+ Add row</button>
+
+        <!-- Keyboard hints -->
+        <div class="kbd-hints">
+          <div class="kbd-hint"><span class="kbd">Tab</span> Move to next field</div>
+          <div class="kbd-hint"><span class="kbd">Tab</span> on last field &rarr; new row added automatically</div>
+          <div class="kbd-hint"><span class="kbd">Backspace</span> on empty row &rarr; removes that row</div>
+          <div class="kbd-hint" style="margin-left:auto;color:#94a3b8;">Time format: HH:MM &nbsp; e.g. 01:30</div>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <div class="submit-row">
+        <button class="submit-btn" onclick="submitDay()">&#10003; Submit Day Log</button>
+        <span class="submit-note">Submitting locks today's entries. You can still view them in the history below.</span>
+      </div>
+
+      <!-- Past entries -->
+      <div>
+        <div class="section-label" style="margin-bottom:10px;">Previous Days</div>
+        <div class="logged-section" style="gap:8px;">
+
+          <div class="logged-day">
+            <div class="logged-day-hdr" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+              <span class="logged-day-title">Wednesday, 18 Mar 2026</span>
+              <span class="logged-day-meta">4 entries &nbsp;&middot;&nbsp; 7:20 total</span>
+            </div>
+            <div class="logged-entries">
+              <div class="log-entry">
+                <span class="log-num">1</span>
+                <span class="log-activity">Reviewed OT formula ticket #33208 and forwarded to Gopal for development. Verified the three OT scenarios with Sudesh.</span>
+                <span class="log-time">02:00</span>
+                <span class="log-cust">HRMS Core</span>
+              </div>
+              <div class="log-entry">
+                <span class="log-num">2</span>
+                <span class="log-activity">Daily standup facilitation and sprint board update. Unblocked Gopal on the attendance import mapping issue.</span>
+                <span class="log-time">00:30</span>
+                <span class="log-cust">Internal</span>
+              </div>
+              <div class="log-entry">
+                <span class="log-num">3</span>
+                <span class="log-activity">SA document preparation for appraisal form split ticket #33209. Drafted acceptance criteria and edge cases.</span>
+                <span class="log-time">02:30</span>
+                <span class="log-cust">ESS Portal</span>
+              </div>
+              <div class="log-entry">
+                <span class="log-num">4</span>
+                <span class="log-activity">Deployment preparation for release batch: #33208, #33207. Prepared rollback notes and got approval from Ram sir.</span>
+                <span class="log-time">02:20</span>
+                <span class="log-cust">HRMS Core</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="logged-day">
+            <div class="logged-day-hdr" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+              <span class="logged-day-title">Tuesday, 17 Mar 2026</span>
+              <span class="logged-day-meta">3 entries &nbsp;&middot;&nbsp; 6:45 total</span>
+            </div>
+            <div class="logged-entries" style="display:none;">
+              <div class="log-entry">
+                <span class="log-num">1</span>
+                <span class="log-activity">Backlog refinement session with dev lead. Estimated and slotted 6 tickets for next sprint including holiday attendance feature.</span>
+                <span class="log-time">01:00</span>
+                <span class="log-cust">Internal</span>
+              </div>
+              <div class="log-entry">
+                <span class="log-num">2</span>
+                <span class="log-activity">Requirement analysis for public holiday attendance #33196. Reviewed leave policy document and drafted SA notes.</span>
+                <span class="log-time">02:30</span>
+                <span class="log-cust">HRMS Core</span>
+              </div>
+              <div class="log-entry">
+                <span class="log-num">3</span>
+                <span class="log-activity">QA coordination for tickets in testing. Reviewed Sudesh's test reports for #33207 and signed off on deployment eligibility.</span>
+                <span class="log-time">03:15</span>
+                <span class="log-cust">ESS Portal</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  const customers = ['', 'HRMS Core', 'ESS Portal', 'PMS', 'Internal', 'Client A', 'Client B'];
+  let rowCount = 0;
+  let currentDate = new Date(2026, 2, 19); // 19 Mar 2026
+
+  function formatDate(d) {
+    const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return days[d.getDay()] + ', ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+  }
+
+  function changeDay(delta) {
+    currentDate.setDate(currentDate.getDate() + delta);
+    document.getElementById('date-label').textContent = formatDate(currentDate);
+    const today = new Date(2026, 2, 19);
+    const isToday = currentDate.toDateString() === today.toDateString();
+    document.getElementById('day-badge').textContent = isToday ? 'Today' : '';
+  }
+
+  function goToday() {
+    currentDate = new Date(2026, 2, 19);
+    document.getElementById('date-label').textContent = formatDate(currentDate);
+    document.getElementById('day-badge').textContent = 'Today';
+  }
+
+  function addRow(focusActivity) {
+    rowCount++;
+    const idx = rowCount;
+    const tbody = document.getElementById('entry-body');
+    const tr = document.createElement('tr');
+    tr.id = 'row-' + idx;
+    tr.className = 'active-row';
+
+    const custOptions = customers.map(c => `<option value="${c}">${c || '— None —'}</option>`).join('');
+
+    tr.innerHTML = `
+      <td class="row-num">${idx}</td>
+      <td><input class="act-input" id="act-${idx}" placeholder="What did you work on?" onkeydown="handleActKey(event,${idx})" oninput="recalc()"></td>
+      <td><input class="time-input" id="time-${idx}" placeholder="00:00" maxlength="5" onkeydown="handleTimeKey(event,${idx})" oninput="formatTimeInput(this);recalc()"></td>
+      <td><select class="cust-select" id="cust-${idx}" onkeydown="handleCustKey(event,${idx})">${custOptions}</select></td>
+      <td><button class="del-btn" onclick="delRow(${idx})" title="Remove">&#215;</button></td>
+    `;
+    tbody.appendChild(tr);
+    updateNums();
+    if (focusActivity !== false) {
+      setTimeout(() => { const el = document.getElementById('act-' + idx); if(el) el.focus(); }, 30);
+    }
+  }
+
+  function delRow(idx) {
+    const tr = document.getElementById('row-' + idx);
+    if (tr) tr.remove();
+    updateNums();
+    recalc();
+  }
+
+  function updateNums() {
+    const rows = document.querySelectorAll('#entry-body tr');
+    rows.forEach((tr, i) => { const num = tr.querySelector('.row-num'); if(num) num.textContent = i+1; });
+  }
+
+  function handleActKey(e, idx) {
+    if (e.key === 'Tab' && !e.shiftKey) {
+      e.preventDefault();
+      const timeEl = document.getElementById('time-' + idx);
+      if (timeEl) timeEl.focus();
+    }
+    if (e.key === 'Backspace') {
+      const el = document.getElementById('act-' + idx);
+      if (el && el.value === '' && rowCount > 1) {
+        e.preventDefault();
+        delRow(idx);
+        // focus previous
+        const rows = document.querySelectorAll('#entry-body tr');
+        if (rows.length > 0) {
+          const lastAct = rows[rows.length-1].querySelector('.act-input');
+          if (lastAct) lastAct.focus();
+        }
+      }
+    }
+  }
+
+  function handleTimeKey(e, idx) {
+    if (e.key === 'Tab' && !e.shiftKey) {
+      e.preventDefault();
+      const custEl = document.getElementById('cust-' + idx);
+      if (custEl) custEl.focus();
+    }
+  }
+
+  function handleCustKey(e, idx) {
+    if (e.key === 'Tab' && !e.shiftKey) {
+      e.preventDefault();
+      // Check if this is the last row
+      const rows = document.querySelectorAll('#entry-body tr');
+      const lastRow = rows[rows.length - 1];
+      const lastCust = lastRow ? lastRow.querySelector('.cust-select') : null;
+      const thisCust = document.getElementById('cust-' + idx);
+      if (thisCust === lastCust) {
+        addRow(true);
+      } else {
+        // Move to next row's activity
+        const allActs = document.querySelectorAll('.act-input');
+        let found = false;
+        allActs.forEach(a => {
+          if (found) { a.focus(); found = false; return; }
+          if (a.id === 'act-' + idx) found = true;
+        });
+      }
+    }
+  }
+
+  function formatTimeInput(input) {
+    let val = input.value.replace(/[^0-9]/g, '');
+    if (val.length >= 3) {
+      val = val.slice(0, 2) + ':' + val.slice(2, 4);
+    }
+    input.value = val;
+  }
+
+  function parseTime(str) {
+    const parts = str.split(':');
+    if (parts.length !== 2) return 0;
+    const h = parseInt(parts[0]) || 0;
+    const m = parseInt(parts[1]) || 0;
+    return h * 60 + m;
+  }
+
+  function minutesToHHMM(mins) {
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return h + ':' + String(m).padStart(2, '0');
+  }
+
+  function recalc() {
+    let total = 0;
+    let count = 0;
+    document.querySelectorAll('.time-input').forEach(inp => {
+      const mins = parseTime(inp.value);
+      if (mins > 0) { total += mins; count++; }
+    });
+    document.getElementById('total-hrs').textContent = minutesToHHMM(total);
+    document.getElementById('entry-count').textContent = count;
+  }
+
+  function submitDay() {
+    const rows = document.querySelectorAll('#entry-body tr');
+    let hasContent = false;
+    rows.forEach(tr => {
+      const act = tr.querySelector('.act-input');
+      if (act && act.value.trim()) hasContent = true;
+    });
+    if (!hasContent) { alert('Please log at least one activity before submitting.'); return; }
+    alert('Day log submitted successfully!\n\nEntries are now locked and visible in the history below.');
+  }
+
+  // Init with 3 blank rows
+  addRow(false);
+  addRow(false);
+  addRow(false);
+  setTimeout(() => { document.getElementById('act-1').focus(); }, 100);
+</script>
+</body>
+</html>

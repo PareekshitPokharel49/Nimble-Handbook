@@ -10,7 +10,7 @@ const MEMBERS = [
   { x: 176, label: 'Pareekshit', dept: 0 },
   { x: 236, label: 'Sudesh',     dept: 0 },
   { x: 296, label: 'Gopi',       dept: 0 },
-  { x: 386, label: 'Gopal',      dept: 1 },
+  { x: 386, label: 'Gopal',      dept: 1, sub: 'Deployment' },
   { x: 443, label: 'Prashant',   dept: 1 },
   { x: 500, label: 'Chiranjivi', dept: 1 },
   { x: 557, label: 'Ashmita',    dept: 1 },
@@ -31,8 +31,8 @@ function OrgChart() {
   const memberY = 278
 
   return (
-    <svg viewBox="0 0 1000 320" style={{ width:'100%', maxWidth:1000, display:'block', margin:'0 auto 36px', borderRadius:10 }}>
-      <rect x={0} y={0} width={1000} height={320} fill="#F1F3F6" rx={10} />
+    <svg viewBox="0 0 1000 340" style={{ width:'100%', maxWidth:1000, display:'block', margin:'0 auto 36px', borderRadius:10 }}>
+      <rect x={0} y={0} width={1000} height={340} fill="#F1F3F6" rx={10} />
 
       {/* root → dept curves */}
       {DEPTS.map(d => (
@@ -59,7 +59,10 @@ function OrgChart() {
 
       {/* member labels */}
       {MEMBERS.map(m => (
-        <text key={m.label} x={m.x} y={memberY} textAnchor="middle" fontSize={12} fill={DEPTS[m.dept].color}>{m.label}</text>
+        <g key={m.label}>
+          <text x={m.x} y={memberY} textAnchor="middle" fontSize={12} fill={DEPTS[m.dept].color}>{m.label}</text>
+          {m.sub && <text x={m.x} y={memberY + 14} textAnchor="middle" fontSize={9} fill={DEPTS[m.dept].color} opacity={0.7}>{m.sub}</text>}
+        </g>
       ))}
     </svg>
   )

@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nimble - Smart Comment Format</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root {
+    --navy:#1a2b4a; --accent:#f97316;
+    --text:#1e293b; --muted:#64748b; --border:#d1d5db; --bg:#f1f5f9;
+    --blue:#1976d2; --orange:#f97316;
+  }
+  body { font-family:'Segoe UI',sans-serif; font-size:13px; background:var(--bg); color:var(--text); display:flex; flex-direction:column; height:100vh; overflow:hidden; }
+
+  /* TOPBAR */
+  .topbar { height:48px; background:var(--navy); display:flex; align-items:center; padding:0 16px; gap:12px; flex-shrink:0; }
+  .tb-mod { color:#94a3b8; font-size:12px; display:flex; align-items:center; gap:5px; }
+  .tb-mod span { color:#fff; }
+  .tb-search { flex:1; max-width:320px; margin:0 auto; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15); border-radius:4px; padding:5px 12px; color:#fff; font-size:12px; outline:none; }
+  .tb-search::placeholder { color:#94a3b8; }
+  .tb-right { margin-left:auto; display:flex; align-items:center; gap:14px; }
+  .tb-av { width:28px; height:28px; border-radius:50%; background:#e2e8f0; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:10px; color:var(--navy); }
+  .tb-user { color:#e2e8f0; font-size:12px; }
+  .tb-fy { color:#cbd5e1; font-size:11px; }
+
+  .layout { display:flex; flex:1; overflow:hidden; }
+
+  /* SIDEBAR */
+  .sidebar { width:220px; background:var(--navy); flex-shrink:0; display:flex; flex-direction:column; padding-bottom:16px; }
+  .s-top { padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.07); }
+  .s-top span { color:#cbd5e1; font-size:12px; }
+  .nav-item { display:flex; align-items:center; gap:10px; padding:9px 14px; color:#94a3b8; font-size:12px; border-left:3px solid transparent; cursor:pointer; }
+  .nav-item.open { color:#fff; background:rgba(255,255,255,0.05); }
+  .nav-item .ch { margin-left:auto; font-size:10px; }
+  .sub-menu { background:rgba(0,0,0,0.12); }
+  .sub-item { display:flex; align-items:center; gap:8px; padding:8px 14px 8px 36px; color:#94a3b8; font-size:12px; cursor:pointer; border-left:3px solid transparent; }
+  .sub-item.active { color:#fff; border-left-color:var(--accent); background:rgba(255,255,255,0.05); }
+  .sub-item .dot { width:5px; height:5px; border-radius:50%; background:#475569; flex-shrink:0; }
+  .sub-item.active .dot { background:var(--accent); }
+  .s-logo { margin-top:auto; padding:12px 14px; border-top:1px solid rgba(255,255,255,0.07); display:flex; align-items:center; gap:9px; }
+  .logo-c { width:30px; height:30px; background:var(--accent); border-radius:7px; display:flex; align-items:center; justify-content:center; font-weight:900; color:#fff; font-size:13px; }
+  .logo-t { color:#e2e8f0; font-size:11px; font-weight:600; line-height:1.3; }
+  .logo-t small { color:#64748b; font-size:10px; font-weight:400; }
+
+  /* MAIN */
+  .main { flex:1; overflow-y:auto; background:#fff; }
+  .main::-webkit-scrollbar { width:6px; }
+  .main::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:3px; }
+
+  .page-header { padding:14px 24px 0; border-bottom:1px solid var(--border); }
+  .page-header h2 { font-size:15px; font-weight:700; padding-bottom:12px; }
+
+  .action-bar { padding:8px 24px; border-bottom:1px solid var(--border); background:#f8fafc; display:flex; align-items:center; gap:6px; }
+  .a-btn { padding:5px 12px; border:1px solid var(--border); border-radius:3px; font-size:11px; cursor:pointer; background:#fff; color:var(--text); font-family:inherit; }
+  .a-btn.primary { background:var(--navy); color:#fff; border-color:var(--navy); }
+
+  .content { display:flex; }
+  .ticket-body { flex:1; padding:22px 24px 40px; }
+  .ticket-title { font-size:15px; font-weight:700; margin-bottom:4px; }
+  .ticket-id { font-size:12px; color:var(--muted); margin-bottom:18px; }
+  .meta-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px 20px; margin-bottom:20px; padding:14px 16px; background:#f8fafc; border:1px solid var(--border); border-radius:6px; }
+  .meta-row { display:flex; gap:8px; align-items:center; font-size:12px; }
+  .mk { color:var(--muted); font-weight:600; font-size:11px; min-width:90px; }
+  .pill { display:inline-flex; padding:2px 8px; border-radius:3px; font-size:10px; font-weight:700; }
+  .pill-bug { background:#fef2f2; color:#dc2626; }
+  .pill-feat { background:#eff6ff; color:#2563eb; }
+  .pill-urgent { background:#fff7ed; color:#c2410c; }
+  .pill-prog { background:#f5f3ff; color:#6d28d9; }
+  .section-label { font-size:10px; font-weight:700; color:#94a3b8; letter-spacing:0.6px; margin-bottom:6px; text-transform:uppercase; }
+  .desc-box { background:#f8fafc; border:1px solid var(--border); border-radius:6px; padding:12px 16px; font-size:12px; color:#374151; line-height:1.75; margin-bottom:18px; }
+
+  .comments-area { margin-top:4px; }
+  .comment-item { display:flex; gap:12px; margin-bottom:18px; }
+  .c-av { width:32px; height:32px; border-radius:50%; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:11px; color:#fff; }
+  .c-body { flex:1; }
+  .c-head { display:flex; align-items:center; gap:8px; margin-bottom:5px; }
+  .c-name { font-weight:700; font-size:12px; }
+  .c-date { font-size:11px; color:var(--muted); }
+  .c-text { font-size:12px; color:#374151; line-height:1.7; background:#f8fafc; border:1px solid var(--border); border-radius:6px; padding:10px 14px; }
+  .add-comment-bar { display:flex; gap:12px; align-items:center; margin-top:8px; padding-top:16px; border-top:1px solid var(--border); }
+  .add-comment-input { flex:1; border:1px solid var(--border); border-radius:6px; padding:10px 14px; font-size:12px; color:var(--muted); background:#f8fafc; cursor:pointer; font-family:inherit; }
+  .add-comment-input:hover { border-color:#94a3b8; }
+  .add-btn { padding:8px 16px; background:var(--navy); color:#fff; border:none; border-radius:5px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; }
+
+  .ticket-sidebar { width:230px; flex-shrink:0; border-left:1px solid var(--border); padding:18px 16px; background:#fafafa; }
+  .ts-section { margin-bottom:20px; }
+  .ts-label { font-size:10px; font-weight:700; color:#94a3b8; letter-spacing:0.6px; margin-bottom:8px; text-transform:uppercase; }
+  .ts-row { display:flex; justify-content:space-between; align-items:center; font-size:12px; padding:5px 0; border-bottom:1px solid #f0f0f0; }
+  .ts-row:last-child { border-bottom:none; }
+  .ts-key { color:var(--muted); }
+  .ts-val { color:var(--text); font-weight:600; }
+
+  /* ═══════════ MODAL — matches actual Nimble dialog ═══════════ */
+  .overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:200; align-items:center; justify-content:center; }
+  .overlay.open { display:flex; }
+  .modal { background:#f0f3f7; border-radius:4px; width:740px; max-height:92vh; display:flex; flex-direction:column; overflow:hidden; box-shadow:0 8px 40px rgba(0,0,0,0.35); }
+
+  /* modal title bar — matches the dark grey bar in screenshot */
+  .modal-titlebar { background:#4a5568; color:#fff; padding:10px 16px; display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+  .modal-titlebar span { font-size:14px; font-weight:600; }
+  .modal-close { background:none; border:none; color:#fff; font-size:18px; cursor:pointer; line-height:1; padding:0 4px; }
+  .modal-close:hover { color:#e2e8f0; }
+
+  .modal-body { flex:1; overflow-y:auto; padding:16px 20px; }
+  .modal-body::-webkit-scrollbar { width:4px; }
+  .modal-body::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:3px; }
+
+  /* Form rows matching the screenshot layout */
+  .form-row { display:flex; align-items:flex-start; margin-bottom:12px; gap:0; }
+  .f-label { font-size:12px; color:#374151; font-weight:500; min-width:130px; padding-top:8px; padding-right:10px; text-align:right; flex-shrink:0; }
+  .f-label .req { color:#dc2626; }
+  .f-control { flex:1; }
+  .f-input { width:100%; border:1px solid #c8cdd5; border-radius:3px; padding:6px 10px; font-size:12px; font-family:inherit; color:var(--text); background:#fff; outline:none; }
+  .f-input:focus { border-color:#1976d2; box-shadow:0 0 0 2px rgba(25,118,210,0.1); }
+  .f-select { width:100%; border:1px solid #c8cdd5; border-radius:3px; padding:6px 10px; font-size:12px; font-family:inherit; color:var(--text); background:#fff; outline:none; cursor:pointer; appearance:auto; }
+  .f-select:focus { border-color:#1976d2; }
+  .f-select.required-empty { border-color:#dc2626; background:#fff8f8; }
+
+  /* Two-column row */
+  .form-row-2col { display:flex; gap:0; margin-bottom:12px; }
+  .col-left { display:flex; align-items:flex-start; flex:1; }
+  .col-right { display:flex; align-items:flex-start; flex:1; }
+
+  /* RTE toolbar — matches screenshot exactly */
+  .rte-wrap { flex:1; }
+  .rte-toolbar { border:1px solid #c8cdd5; border-bottom:none; border-radius:3px 3px 0 0; padding:4px 8px; background:#f9fafb; display:flex; align-items:center; gap:1px; flex-wrap:wrap; }
+  .rte-btn { width:24px; height:24px; border:none; background:none; cursor:pointer; border-radius:3px; font-size:12px; color:#374151; display:flex; align-items:center; justify-content:center; font-family:serif; }
+  .rte-btn:hover { background:#e5e7eb; }
+  .rte-sep { width:1px; height:16px; background:#d1d5db; margin:0 3px; }
+  .rte-area { border:1px solid #c8cdd5; border-radius:0 0 3px 3px; min-height:160px; background:#fff; padding:10px; font-size:12px; color:#6b7280; font-style:italic; outline:none; resize:vertical; }
+  .rte-area:focus { border-color:#1976d2; }
+
+  /* Structured comment form (replaces RTE when Developer is selected) */
+  .structured-form { border:1px solid #c8cdd5; border-radius:3px; background:#fff; overflow:hidden; }
+  .sf-header { padding:8px 12px; display:flex; align-items:center; gap:8px; border-bottom:1px solid #e5e7eb; }
+  .sf-header.bug { background:#fef2f2; }
+  .sf-header.feat { background:#eff6ff; }
+  .sf-tag { font-size:10px; font-weight:800; padding:2px 8px; border-radius:3px; }
+  .sf-tag.bug { background:#dc2626; color:#fff; }
+  .sf-tag.feat { background:#2563eb; color:#fff; }
+  .sf-title { font-size:12px; font-weight:700; }
+  .sf-title.bug { color:#991b1b; }
+  .sf-title.feat { color:#1e40af; }
+  .sf-note { margin-left:auto; font-size:10px; color:var(--muted); font-style:italic; }
+  .sf-body { padding:10px 12px; display:flex; flex-direction:column; gap:8px; }
+  .sf-field { display:flex; flex-direction:column; gap:3px; }
+  .sf-field-row { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .sf-label { font-size:10px; font-weight:700; color:var(--muted); letter-spacing:0.3px; }
+  .sf-input { border:1px solid #c8cdd5; border-radius:3px; padding:6px 8px; font-size:12px; font-family:inherit; color:var(--text); background:#fff; outline:none; resize:none; }
+  .sf-input:focus { border-color:#1976d2; }
+  .sf-input.locked { background:#f8fafc; color:#374151; font-weight:700; cursor:default; }
+
+  /* Attachments */
+  .file-btn { display:inline-flex; align-items:center; gap:6px; padding:5px 12px; background:#1976d2; color:#fff; border:none; border-radius:3px; font-size:12px; cursor:pointer; font-family:inherit; }
+  .file-label { font-size:12px; color:#6b7280; margin-left:6px; }
+
+  /* Checkbox */
+  .cb-label { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--text); cursor:pointer; }
+  .cb-label input { accent-color:#1976d2; width:13px; height:13px; }
+
+  /* Modal footer buttons — matches screenshot: blue Create, orange Close */
+  .modal-footer { padding:10px 20px; border-top:1px solid #d1d5db; display:flex; justify-content:flex-end; gap:8px; background:#f0f3f7; flex-shrink:0; }
+  .btn-create { display:flex; align-items:center; gap:6px; padding:7px 18px; background:#1976d2; color:#fff; border:none; border-radius:3px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .btn-create:hover { background:#1565c0; }
+  .btn-close-modal { display:flex; align-items:center; gap:6px; padding:7px 16px; background:#f97316; color:#fff; border:none; border-radius:3px; font-size:13px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .btn-close-modal:hover { background:#ea6c10; }
+
+  /* Department required hint */
+  .dept-hint { font-size:11px; color:#dc2626; margin-top:4px; display:none; }
+  .dept-hint.show { display:block; }
+
+  /* Auto-apply badge */
+  .auto-badge { display:none; align-items:center; gap:4px; background:#f0fdf4; border:1px solid #bbf7d0; color:#15803d; font-size:10px; font-weight:700; padding:2px 8px; border-radius:20px; }
+  .auto-badge.show { display:flex; }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="tb-mod">☰ Modules <span style="color:#475569">»</span> <span>ESS Portal</span> <span style="color:#475569">»</span> <span>My Tasks</span></div>
+  <input class="tb-search" placeholder="Search tasks, tickets...">
+  <div class="tb-right">
+    <span class="tb-fy">FY: 2082-2083</span>
+    <div class="tb-av">PK</div>
+    <span class="tb-user">Prajwol K.</span>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="s-top"><span>Main Dashboard</span></div>
+    <div class="nav-item">🏠 Dashboard</div>
+    <div class="nav-item open">✅ My Tasks <span class="ch">∨</span></div>
+    <div class="sub-menu">
+      <div class="sub-item"><span class="dot"></span>Dashboard</div>
+      <div class="sub-item active"><span class="dot"></span>Manage Task</div>
+      <div class="sub-item"><span class="dot"></span>Milestone</div>
+      <div class="sub-item"><span class="dot"></span>Kanban Board</div>
+      <div class="sub-item"><span class="dot"></span>Task Comments</div>
+    </div>
+    <div class="nav-item">📅 Attendance <span class="ch">›</span></div>
+    <div class="nav-item">📊 Reporting <span class="ch">›</span></div>
+    <div class="nav-item">⚙ Settings <span class="ch">›</span></div>
+    <div class="s-logo">
+      <div class="logo-c">N</div>
+      <div class="logo-t">Nimble HRMIS<br><small>ESS Portal v3.1</small></div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="page-header">
+      <h2>Task #33891 — Login page SSO redirect fails for ADFS clients after session timeout</h2>
+    </div>
+
+    <div class="action-bar">
+      <button class="a-btn">← Back</button>
+      <button class="a-btn">Edit</button>
+      <button class="a-btn">Forward for Testing</button>
+      <button class="a-btn primary">Mark In Progress</button>
+      <!-- Demo ticket type toggle -->
+      <div style="margin-left:auto;display:flex;align-items:center;gap:6px;background:#fffbeb;border:1px solid #fde68a;border-radius:5px;padding:4px 10px;">
+        <span style="font-size:10px;font-weight:700;color:#92400e;">DEMO — Ticket type set by SA:</span>
+        <button onclick="setType('bug')" id="demo-bug" style="padding:3px 10px;border-radius:3px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid #dc2626;background:#fef2f2;color:#dc2626;font-family:inherit;">🐛 Bug</button>
+        <button onclick="setType('feat')" id="demo-feat" style="padding:3px 10px;border-radius:3px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid #d1d5db;background:#fff;color:#64748b;font-family:inherit;">✦ Feature</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="ticket-body">
+        <div class="ticket-title">Login page SSO redirect fails for ADFS clients after session timeout</div>
+        <div class="ticket-id">#33891 · Raised by CSD · 14 Mar 2026</div>
+
+        <div class="meta-grid">
+          <div class="meta-row"><span class="mk">Ticket Type</span> <span class="pill pill-bug" id="type-pill">BUG</span></div>
+          <div class="meta-row"><span class="mk">Priority</span> <span class="pill pill-urgent">URGENT</span></div>
+          <div class="meta-row"><span class="mk">Status</span> <span class="pill pill-prog">In Progress</span></div>
+          <div class="meta-row"><span class="mk">Sprint</span> <span style="font-size:12px">W12 · Mar 2026</span></div>
+          <div class="meta-row"><span class="mk">SA Owner</span> <span style="font-size:12px">Prajwol K.</span></div>
+          <div class="meta-row"><span class="mk">Estimate</span> <span style="font-size:12px">4 hrs</span></div>
+        </div>
+
+        <div class="section-label">Bug Description</div>
+        <div class="desc-box">When a user's ADFS session expires and they attempt a new login, the SSO redirect loop fires but does not clear the stale token cookie. The browser is redirected back to the login page instead of completing authentication.</div>
+
+        <div class="comments-area">
+          <div class="section-label" style="margin-bottom:14px;">Activity & Comments</div>
+
+          <div class="comment-item">
+            <div class="c-av" style="background:#1a2b4a;">PK</div>
+            <div class="c-body">
+              <div class="c-head">
+                <span class="c-name">Prajwol K.</span>
+                <span class="c-date">14 Mar 2026 · 10:22 AM</span>
+                <span class="pill" style="background:#f5f3ff;color:#6d28d9;font-size:10px;font-weight:700;padding:1px 7px;border-radius:3px;">Status Change</span>
+              </div>
+              <div class="c-text">Ticket raised from CSD. Confirmed reproducible on production. Assigning to DEV team. Priority set to Urgent.</div>
+            </div>
+          </div>
+
+          <div class="comment-item">
+            <div class="c-av" style="background:#0f766e;">SB</div>
+            <div class="c-body">
+              <div class="c-head">
+                <span class="c-name">Sandesh B.</span>
+                <span class="c-date">14 Mar 2026 · 2:14 PM</span>
+                <span class="pill" style="background:#f0fdf4;color:#15803d;font-size:10px;font-weight:700;padding:1px 7px;border-radius:3px;">Comment</span>
+              </div>
+              <div class="c-text">Investigated the auth middleware. The stale token is not being cleared when the session expiry flag is returned by ADFS. Will push a fix today.</div>
+            </div>
+          </div>
+
+          <div class="add-comment-bar">
+            <div class="c-av" style="background:#1a2b4a;flex-shrink:0;">PK</div>
+            <div class="add-comment-input" onclick="openModal()">Write a comment…</div>
+            <button class="add-btn" onclick="openModal()">+ Add Comment</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ticket-sidebar">
+        <div class="ts-section">
+          <div class="ts-label">Ticket Info</div>
+          <div class="ts-row"><span class="ts-key">ID</span><span class="ts-val">#33891</span></div>
+          <div class="ts-row"><span class="ts-key">Type</span><span class="ts-val"><span class="pill pill-bug" id="ts-type-pill">BUG</span></span></div>
+          <div class="ts-row"><span class="ts-key">Priority</span><span class="ts-val">Urgent</span></div>
+          <div class="ts-row"><span class="ts-key">Sprint</span><span class="ts-val">W12 Mar 2026</span></div>
+        </div>
+        <div class="ts-section">
+          <div class="ts-label">Team</div>
+          <div class="ts-row"><span class="ts-key">SA</span><span class="ts-val">Prajwol K.</span></div>
+          <div class="ts-row"><span class="ts-key">QA</span><span class="ts-val">Shramila B.</span></div>
+        </div>
+        <div class="ts-section">
+          <div class="ts-label">Smart Comment</div>
+          <div style="font-size:11px;color:#374151;line-height:1.7;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;padding:10px 12px;">
+            <strong style="color:#15803d;display:block;margin-bottom:4px;">How it works</strong>
+            Select <strong>Developer</strong> as your department in the comment form.<br><br>
+            The Reporting Details area switches automatically to the correct structured template — Bug Fix or Feature — based on the ticket type set by SA.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ MODAL ═══════════════ -->
+<div class="overlay" id="overlay" onclick="handleOverlayClick(event)">
+  <div class="modal" id="modal">
+
+    <!-- Title bar matching Nimble's dark grey bar -->
+    <div class="modal-titlebar">
+      <span>Task Reporting Entry</span>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+
+    <div class="modal-body">
+
+      <!-- Row 1: Hours Spent + Task Status -->
+      <div class="form-row-2col">
+        <div class="col-left">
+          <span class="f-label">Hours Spent <span class="req">*</span></span>
+          <div class="f-control"><input class="f-input" type="text" placeholder="H:M or H.M (24 Hours Format)"></div>
+        </div>
+        <div class="col-right">
+          <span class="f-label" style="min-width:110px;">Task Status</span>
+          <div class="f-control">
+            <select class="f-select">
+              <option>In Progress</option>
+              <option>Resolved</option>
+              <option>Closed</option>
+              <option>Backlog</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2: Department (NEW — mandatory) + empty right -->
+      <div class="form-row-2col">
+        <div class="col-left">
+          <span class="f-label">Department <span class="req">*</span></span>
+          <div class="f-control">
+            <select class="f-select required-empty" id="dept-select" onchange="onDeptChange()">
+              <option value="">— Select Department</option>
+              <option value="dev">Developer</option>
+              <option value="qa">QA</option>
+              <option value="sa">System Analysis</option>
+              <option value="csd">CSD</option>
+              <option value="deployment">Deployment</option>
+            </select>
+            <div class="dept-hint" id="dept-hint">Department is required before submitting.</div>
+          </div>
+        </div>
+        <div class="col-right" style="align-items:center;padding-top:4px;">
+          <span class="f-label" style="min-width:110px;visibility:hidden;"></span>
+          <div class="f-control" style="display:flex;align-items:center;gap:8px;padding-top:4px;">
+            <div class="auto-badge" id="auto-badge">
+              <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+              Format auto-applied from ticket type
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 3: Reporting Details -->
+      <div class="form-row">
+        <span class="f-label" style="padding-top:6px;">Reporting Details <span class="req">*</span></span>
+        <div class="f-control">
+
+          <!-- Default: RTE (shown for non-Developer departments) -->
+          <div id="rte-block">
+            <div class="rte-toolbar">
+              <button class="rte-btn" style="font-weight:900;">B</button>
+              <button class="rte-btn" style="font-style:italic;">I</button>
+              <button class="rte-btn" style="text-decoration:underline;">U</button>
+              <button class="rte-btn" style="text-decoration:line-through;">S</button>
+              <div class="rte-sep"></div>
+              <button class="rte-btn">1.</button>
+              <button class="rte-btn">•</button>
+              <button class="rte-btn" style="font-size:14px;">"</button>
+              <div class="rte-sep"></div>
+              <button class="rte-btn">≡</button>
+              <button class="rte-btn">≡</button>
+              <button class="rte-btn">≡</button>
+              <button class="rte-btn">≡</button>
+              <div class="rte-sep"></div>
+              <button class="rte-btn">🔗</button>
+              <button class="rte-btn">🖼</button>
+              <button class="rte-btn">⊞</button>
+              <div class="rte-sep"></div>
+              <button class="rte-btn" style="font-size:10px;width:auto;padding:0 6px;">⊞ Source</button>
+            </div>
+            <div class="rte-area" contenteditable="true">Enter reporting details here…</div>
+          </div>
+
+          <!-- Bug structured form (shown when Developer + Bug ticket) -->
+          <div class="structured-form" id="form-bug" style="display:none;">
+            <div class="sf-header bug">
+              <span class="sf-tag bug">BUG FIX</span>
+              <span class="sf-title bug">Bug Fix Implementation Comment</span>
+              <span class="sf-note">Auto-loaded · Ticket type: Bug</span>
+            </div>
+            <div class="sf-body">
+              <div class="sf-field">
+                <label class="sf-label">BUG DESCRIPTION</label>
+                <textarea class="sf-input" rows="2" placeholder="Briefly describe the bug that was fixed"></textarea>
+              </div>
+              <div class="sf-field">
+                <label class="sf-label">ROOT CAUSE</label>
+                <textarea class="sf-input" rows="2" placeholder="What caused this bug?"></textarea>
+              </div>
+              <div class="sf-field">
+                <label class="sf-label">CODE CHANGES</label>
+                <textarea class="sf-input" rows="2" placeholder="Files modified, stored procedures, config changes"></textarea>
+              </div>
+              <div class="sf-field">
+                <label class="sf-label">IMPACT ANALYSIS</label>
+                <textarea class="sf-input" rows="2" placeholder="Which other modules or workflows may be affected?"></textarea>
+              </div>
+              <div class="sf-field-row">
+                <div class="sf-field">
+                  <label class="sf-label">TESTED LOCALLY</label>
+                  <input class="sf-input" type="text" placeholder="Yes / No — describe what you tested">
+                </div>
+                <div class="sf-field">
+                  <label class="sf-label">STATUS</label>
+                  <input class="sf-input locked" type="text" value="Ready for QA" readonly>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Feature structured form (shown when Developer + Feature ticket) -->
+          <div class="structured-form" id="form-feat" style="display:none;">
+            <div class="sf-header feat">
+              <span class="sf-tag feat">FEATURE</span>
+              <span class="sf-title feat">Feature Implementation Comment</span>
+              <span class="sf-note">Auto-loaded · Ticket type: Feature</span>
+            </div>
+            <div class="sf-body">
+              <div class="sf-field">
+                <label class="sf-label">DESCRIPTION</label>
+                <textarea class="sf-input" rows="2" placeholder="Describe the feature that was implemented"></textarea>
+              </div>
+              <div class="sf-field">
+                <label class="sf-label">MODULE</label>
+                <input class="sf-input" type="text" placeholder="Which module or page was changed?">
+              </div>
+              <div class="sf-field">
+                <label class="sf-label">CODE CHANGES</label>
+                <textarea class="sf-input" rows="2" placeholder="Files added or modified, stored procedures, config changes"></textarea>
+              </div>
+              <div class="sf-field">
+                <label class="sf-label">IMPACT ANALYSIS</label>
+                <textarea class="sf-input" rows="2" placeholder="Other modules or workflows that may be affected"></textarea>
+              </div>
+              <div class="sf-field-row">
+                <div class="sf-field">
+                  <label class="sf-label">TESTED LOCALLY</label>
+                  <input class="sf-input" type="text" placeholder="Yes / No — describe what you tested">
+                </div>
+                <div class="sf-field">
+                  <label class="sf-label">STATUS</label>
+                  <input class="sf-input locked" type="text" value="Ready for QA" readonly>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Row 4: Attachments + Report Type -->
+      <div class="form-row-2col">
+        <div class="col-left">
+          <span class="f-label">Attachments</span>
+          <div class="f-control" style="display:flex;align-items:center;">
+            <button class="file-btn">Choose Files</button>
+            <span class="file-label">No file chosen</span>
+          </div>
+        </div>
+        <div class="col-right">
+          <span class="f-label" style="min-width:110px;">Report Type</span>
+          <div class="f-control">
+            <select class="f-select">
+              <option>Comment</option>
+              <option>Analyst Document</option>
+              <option>Work Report</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 5: Time + TC% -->
+      <div class="form-row-2col">
+        <div class="col-left">
+          <span class="f-label">Time</span>
+          <div class="f-control" style="display:flex;gap:8px;">
+            <input class="f-input" type="text" placeholder="start time(H:M)" style="flex:1;">
+            <input class="f-input" type="text" placeholder="end time(H:M)" style="flex:1;">
+          </div>
+        </div>
+        <div class="col-right">
+          <span class="f-label" style="min-width:110px;">TC %</span>
+          <div class="f-control" style="display:flex;align-items:center;gap:10px;">
+            <input class="f-input" type="text" style="width:90px;">
+            <label class="cb-label"><input type="checkbox"> Mark as Extra Work</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 6: Reporting Date + Forward To -->
+      <div class="form-row-2col">
+        <div class="col-left">
+          <span class="f-label">Reporting Date</span>
+          <div class="f-control" style="display:flex;align-items:center;gap:10px;">
+            <input class="f-input" type="date" style="width:160px;">
+            <label class="cb-label"><input type="checkbox"> Mark As Complete</label>
+          </div>
+        </div>
+        <div class="col-right">
+          <span class="f-label" style="min-width:110px;">Forward To</span>
+          <div class="f-control">
+            <input class="f-input" type="text">
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /modal-body -->
+
+    <div class="modal-footer">
+      <button class="btn-create" onclick="handleCreate()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v14a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Create
+      </button>
+      <button class="btn-close-modal" onclick="closeModal()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Close
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let ticketType = 'bug';
+
+  function setType(t) {
+    ticketType = t;
+    document.getElementById('demo-bug').style.cssText = t === 'bug'
+      ? 'padding:3px 10px;border-radius:3px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid #dc2626;background:#fef2f2;color:#dc2626;font-family:inherit;'
+      : 'padding:3px 10px;border-radius:3px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid #d1d5db;background:#fff;color:#64748b;font-family:inherit;';
+    document.getElementById('demo-feat').style.cssText = t === 'feat'
+      ? 'padding:3px 10px;border-radius:3px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid #2563eb;background:#eff6ff;color:#2563eb;font-family:inherit;'
+      : 'padding:3px 10px;border-radius:3px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid #d1d5db;background:#fff;color:#64748b;font-family:inherit;';
+    const pill = document.getElementById('type-pill');
+    const tspill = document.getElementById('ts-type-pill');
+    if (t === 'bug') { pill.className='pill pill-bug'; pill.textContent='BUG'; tspill.className='pill pill-bug'; tspill.textContent='BUG'; }
+    else { pill.className='pill pill-feat'; pill.textContent='FEATURE'; tspill.className='pill pill-feat'; tspill.textContent='FEATURE'; }
+    // update form if modal open and developer selected
+    if (document.getElementById('overlay').classList.contains('open') && document.getElementById('dept-select').value === 'dev') {
+      showStructured();
+    }
+  }
+
+  function openModal() {
+    // reset
+    document.getElementById('dept-select').value = '';
+    document.getElementById('dept-select').className = 'f-select required-empty';
+    document.getElementById('dept-hint').classList.remove('show');
+    document.getElementById('rte-block').style.display = 'block';
+    document.getElementById('form-bug').style.display = 'none';
+    document.getElementById('form-feat').style.display = 'none';
+    document.getElementById('auto-badge').classList.remove('show');
+    document.getElementById('overlay').classList.add('open');
+  }
+
+  function closeModal() {
+    document.getElementById('overlay').classList.remove('open');
+  }
+
+  function handleOverlayClick(e) {
+    if (e.target === document.getElementById('overlay')) closeModal();
+  }
+
+  function showStructured() {
+    document.getElementById('rte-block').style.display = 'none';
+    document.getElementById('form-bug').style.display = ticketType === 'bug' ? 'block' : 'none';
+    document.getElementById('form-feat').style.display = ticketType === 'feat' ? 'block' : 'none';
+    document.getElementById('auto-badge').classList.add('show');
+  }
+
+  function onDeptChange() {
+    const val = document.getElementById('dept-select').value;
+    const sel = document.getElementById('dept-select');
+    sel.className = val ? 'f-select' : 'f-select required-empty';
+    document.getElementById('dept-hint').classList.remove('show');
+
+    if (val === 'dev') {
+      showStructured();
+    } else {
+      document.getElementById('rte-block').style.display = 'block';
+      document.getElementById('form-bug').style.display = 'none';
+      document.getElementById('form-feat').style.display = 'none';
+      document.getElementById('auto-badge').classList.remove('show');
+    }
+  }
+
+  function handleCreate() {
+    const dept = document.getElementById('dept-select').value;
+    if (!dept) {
+      document.getElementById('dept-select').className = 'f-select required-empty';
+      document.getElementById('dept-hint').classList.add('show');
+      document.getElementById('dept-select').focus();
+      return;
+    }
+    closeModal();
+  }
+</script>
+</body>
+</html>

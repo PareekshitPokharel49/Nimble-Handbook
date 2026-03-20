@@ -98,7 +98,7 @@ const picks = [
 export default function LLMRecommendation() {
   return (
     <>
-      <h2 className="section-title">9. LLM API Recommendation</h2>
+      <h2 className="section-title">10. LLM API Recommendation</h2>
       <p className="section-subtitle">
         Pricing comparison across 11 models for comment validation &amp; summarization workloads · March 2026
       </p>

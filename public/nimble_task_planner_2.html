@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nimble - Task Planner</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  :root {
+    --navy:#1a2b4a; --navy-l:#243555; --accent:#f97316;
+    --text:#1e293b; --muted:#64748b; --border:#e2e8f0; --bg:#f8fafc;
+    --done-bg:#f0fdf4; --done-border:#bbf7d0; --done-text:#15803d;
+  }
+  body { font-family:'Segoe UI',sans-serif; font-size:13px; background:var(--bg); color:var(--text); display:flex; flex-direction:column; height:100vh; overflow:hidden; }
+
+  .topbar { height:46px; background:var(--navy); display:flex; align-items:center; padding:0 14px; gap:12px; flex-shrink:0; }
+  .tb-mod { color:#94a3b8; font-size:12px; display:flex; align-items:center; gap:5px; }
+  .tb-mod span { color:#fff; }
+  .tb-search { flex:1; max-width:320px; margin:0 auto; background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15); border-radius:4px; padding:5px 12px; color:#fff; font-size:12px; outline:none; }
+  .tb-search::placeholder { color:#94a3b8; }
+  .tb-right { margin-left:auto; display:flex; align-items:center; gap:14px; }
+  .tb-av { width:27px; height:27px; border-radius:50%; background:#e2e8f0; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:10px; color:var(--navy); }
+  .tb-user { color:#e2e8f0; font-size:12px; }
+  .tb-fy { color:#cbd5e1; font-size:11px; }
+  .layout { display:flex; flex:1; overflow:hidden; }
+
+  .sidebar { width:210px; background:var(--navy); flex-shrink:0; overflow-y:auto; display:flex; flex-direction:column; padding-bottom:12px; }
+  .sidebar::-webkit-scrollbar { width:3px; }
+  .sidebar::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); }
+  .s-top { padding:9px 12px; border-bottom:1px solid rgba(255,255,255,0.07); display:flex; align-items:center; gap:7px; }
+  .s-top span { color:#cbd5e1; font-size:12px; }
+  .nav { display:flex; align-items:center; gap:9px; padding:8px 13px; color:#94a3b8; font-size:12px; cursor:pointer; border-left:3px solid transparent; }
+  .nav.open { color:#fff; background:rgba(255,255,255,0.05); }
+  .nav .ch { margin-left:auto; font-size:10px; color:#475569; }
+  .sub { background:rgba(0,0,0,0.12); }
+  .sub-i { display:flex; align-items:center; gap:7px; padding:7px 13px 7px 34px; color:#94a3b8; font-size:12px; cursor:pointer; border-left:3px solid transparent; }
+  .sub-i.active { color:#fff; border-left-color:var(--accent); background:rgba(255,255,255,0.05); }
+  .sub-i .dot { width:5px; height:5px; border-radius:50%; background:#475569; flex-shrink:0; }
+  .sub-i.active .dot { background:var(--accent); }
+  .s-logo { margin-top:auto; padding:10px 13px; border-top:1px solid rgba(255,255,255,0.07); display:flex; align-items:center; gap:9px; }
+  .logo-c { width:30px; height:30px; background:var(--accent); border-radius:7px; display:flex; align-items:center; justify-content:center; font-weight:900; color:#fff; font-size:13px; }
+  .logo-t { color:#e2e8f0; font-size:11px; font-weight:600; line-height:1.3; }
+  .logo-t small { color:#64748b; font-size:10px; font-weight:400; }
+
+  .main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+  .page-hdr { background:#fff; border-bottom:1px solid var(--border); padding:0 20px; height:42px; display:flex; align-items:center; gap:8px; flex-shrink:0; }
+  .breadcrumb { font-size:12px; color:var(--muted); }
+  .breadcrumb strong { color:var(--text); }
+
+  .date-bar { background:#fff; border-bottom:1px solid var(--border); padding:0 20px; display:flex; align-items:center; gap:0; flex-shrink:0; overflow-x:auto; }
+  .date-bar::-webkit-scrollbar { display:none; }
+  .date-tab { display:flex; flex-direction:column; align-items:center; padding:8px 18px; cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap; min-width:80px; transition:all 0.15s; flex-shrink:0; }
+  .date-tab:hover { background:var(--bg); }
+  .date-tab.active { border-bottom-color:var(--accent); }
+  .date-tab .dt-day { font-size:10px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; }
+  .date-tab .dt-num { font-size:18px; font-weight:800; color:var(--text); line-height:1.2; }
+  .date-tab.active .dt-num { color:var(--navy); }
+  .date-tab .dt-count { font-size:10px; color:var(--muted); margin-top:1px; }
+  .date-tab.active .dt-day { color:var(--accent); }
+  .date-tab .dt-dot { width:6px; height:6px; border-radius:50%; background:var(--accent); margin-top:3px; display:none; }
+  .date-tab.has-tasks .dt-dot { display:block; }
+  .add-date-btn { margin-left:auto; padding:6px 14px; background:var(--navy); color:#fff; border:none; border-radius:4px; font-size:11px; font-weight:600; cursor:pointer; font-family:inherit; white-space:nowrap; flex-shrink:0; }
+  .add-date-btn:hover { background:var(--navy-l); }
+
+  .content { flex:1; overflow-y:auto; padding:20px; display:flex; gap:16px; }
+  .content::-webkit-scrollbar { width:6px; }
+  .content::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:3px; }
+
+  .planner { flex:1; display:flex; flex-direction:column; gap:14px; }
+
+  .planner-hdr { background:#fff; border:1px solid var(--border); border-radius:8px; padding:14px 18px; display:flex; align-items:center; gap:12px; }
+  .planner-date { font-size:18px; font-weight:800; color:var(--navy); }
+  .planner-label { font-size:12px; color:var(--muted); margin-top:1px; }
+  .planner-hdr-right { margin-left:auto; display:flex; align-items:center; gap:10px; }
+  .progress-wrap { display:flex; align-items:center; gap:8px; }
+  .progress-bar { width:120px; height:8px; background:#e2e8f0; border-radius:4px; overflow:hidden; }
+  .progress-fill { height:100%; background:var(--done-text); border-radius:4px; transition:width 0.4s ease; }
+  .progress-label { font-size:11px; font-weight:700; color:var(--done-text); white-space:nowrap; }
+
+  .add-task-bar { background:#fff; border:1px solid var(--border); border-radius:8px; padding:12px 16px; display:flex; align-items:center; gap:10px; }
+  .add-task-input { flex:1; border:none; outline:none; font-size:13px; font-family:inherit; color:var(--text); }
+  .add-task-input::placeholder { color:#94a3b8; }
+  .est-input { width:72px; border:1px solid var(--border); border-radius:4px; padding:5px 8px; font-size:12px; font-family:inherit; outline:none; color:var(--text); text-align:center; }
+  .est-input::placeholder { color:#94a3b8; }
+  .est-label { font-size:11px; color:var(--muted); white-space:nowrap; }
+  .pri-select { border:1px solid var(--border); border-radius:4px; padding:5px 8px; font-size:12px; font-family:inherit; outline:none; color:var(--text); background:#fff; }
+  .add-btn { padding:6px 16px; background:var(--navy); color:#fff; border:none; border-radius:4px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; white-space:nowrap; }
+  .add-btn:hover { background:var(--navy-l); }
+
+  .task-list { display:flex; flex-direction:column; gap:8px; }
+
+  .task-card { background:#fff; border:1px solid var(--border); border-radius:8px; padding:12px 16px; display:flex; align-items:flex-start; gap:12px; transition:all 0.2s; }
+  .task-card:hover { border-color:#cbd5e1; box-shadow:0 1px 4px rgba(0,0,0,0.06); }
+  .task-card.done { background:var(--done-bg); border-color:var(--done-border); opacity:0.85; }
+  .task-card.done .task-title { text-decoration:line-through; color:var(--muted); }
+
+  .task-check { width:20px; height:20px; border-radius:50%; border:2px solid var(--border); flex-shrink:0; cursor:pointer; display:flex; align-items:center; justify-content:center; margin-top:1px; transition:all 0.2s; }
+  .task-check:hover { border-color:var(--done-text); }
+  .task-card.done .task-check { background:var(--done-text); border-color:var(--done-text); }
+  .task-check-tick { color:#fff; font-size:11px; font-weight:800; display:none; }
+  .task-card.done .task-check-tick { display:block; }
+
+  .task-body { flex:1; }
+  .task-title { font-size:13px; font-weight:600; color:var(--text); margin-bottom:5px; line-height:1.4; }
+  .task-meta { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .meta-pill { display:inline-flex; align-items:center; gap:4px; font-size:10px; font-weight:600; padding:2px 7px; border-radius:3px; }
+  .mp-est   { background:#f1f5f9; color:#475569; }
+  .mp-spent { background:#dbeafe; color:#1d4ed8; }
+  .mp-done  { background:var(--done-bg); color:var(--done-text); }
+  .mp-pri-urgent { background:#fee2e2; color:#b91c1c; }
+  .mp-pri-high   { background:#fef9c3; color:#854d0e; }
+  .mp-pri-normal { background:#f1f5f9; color:#475569; }
+  .meta-time { font-size:10px; color:#94a3b8; }
+
+  .task-actions { display:flex; gap:6px; flex-shrink:0; margin-top:1px; }
+  .t-btn { width:26px; height:26px; border:1px solid var(--border); border-radius:4px; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:12px; color:var(--muted); }
+  .t-btn:hover { background:var(--bg); color:var(--text); }
+
+  .task-section-label { display:flex; align-items:center; gap:8px; font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; margin:4px 0 6px; }
+  .task-section-label::before { content:''; flex:0 0 14px; height:1px; background:var(--border); }
+  .task-section-label::after  { content:''; flex:1; height:1px; background:var(--border); }
+
+  .summary { width:240px; flex-shrink:0; display:flex; flex-direction:column; gap:12px; }
+  .s-panel { background:#fff; border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+  .s-panel-hdr { padding:10px 14px; border-bottom:1px solid var(--border); font-size:12px; font-weight:700; color:var(--text); }
+  .s-panel-body { padding:12px 14px; }
+
+  .stat-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #f1f5f9; font-size:12px; }
+  .stat-row:last-child { border-bottom:none; }
+  .stat-key { color:var(--muted); }
+  .stat-val { font-weight:700; color:var(--navy); }
+  .stat-val.green  { color:var(--done-text); }
+  .stat-val.orange { color:var(--accent); }
+
+  .time-row { display:flex; align-items:center; justify-content:space-between; padding:7px 0; border-bottom:1px solid #f1f5f9; font-size:12px; }
+  .time-row:last-child { border-bottom:none; }
+  .time-task { color:var(--text); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-right:8px; }
+  .time-done-badge    { background:var(--done-bg); color:var(--done-text); border-radius:3px; padding:1px 6px; font-size:10px; font-weight:700; }
+  .time-pending-badge { background:#f1f5f9; color:#475569; border-radius:3px; padding:1px 6px; font-size:10px; font-weight:700; }
+
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); z-index:200; align-items:center; justify-content:center; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:#fff; border-radius:10px; padding:24px; width:340px; box-shadow:0 8px 32px rgba(0,0,0,0.15); }
+  .modal h3 { font-size:15px; font-weight:700; color:var(--navy); margin-bottom:16px; }
+  .modal-field { display:flex; flex-direction:column; gap:5px; margin-bottom:14px; }
+  .modal-label { font-size:11px; font-weight:600; color:var(--muted); }
+  .modal-input { border:1px solid var(--border); border-radius:5px; padding:8px 10px; font-size:13px; font-family:inherit; outline:none; color:var(--text); }
+  .modal-input:focus { border-color:#93c5fd; }
+  .modal-footer { display:flex; gap:8px; justify-content:flex-end; margin-top:6px; }
+  .modal-cancel  { padding:7px 16px; background:#fff; color:var(--muted); border:1px solid var(--border); border-radius:5px; font-size:12px; cursor:pointer; font-family:inherit; }
+  .modal-confirm { padding:7px 18px; background:var(--navy); color:#fff; border:none; border-radius:5px; font-size:12px; font-weight:600; cursor:pointer; font-family:inherit; }
+  .modal-confirm:hover { background:var(--navy-l); }
+
+  .task-expand { display:none; border-top:1px solid var(--border); margin-top:10px; padding-top:10px; }
+  .task-expand.open { display:block; }
+  .expand-label { font-size:10px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:6px; }
+
+  .ss-area { border:2px dashed var(--border); border-radius:6px; padding:10px 12px; text-align:center; cursor:pointer; transition:border-color 0.15s; }
+  .ss-area:hover { border-color:#93c5fd; background:#f0f9ff; }
+  .ss-area-text { font-size:11px; color:var(--muted); }
+  .ss-area-text span { color:#2563eb; font-weight:600; }
+  .ss-thumbs { display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+  .ss-thumb { width:52px; height:40px; border-radius:4px; background:#e2e8f0; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:18px; position:relative; cursor:pointer; overflow:hidden; }
+  .ss-thumb img { width:100%; height:100%; object-fit:cover; border-radius:3px; }
+  .ss-thumb-del { position:absolute; top:-4px; right:-4px; width:15px; height:15px; background:#dc2626; color:#fff; border-radius:50%; font-size:9px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-weight:700; z-index:2; }
+
+  .mp-ticket { background:#f3e8ff; color:#7e22ce; cursor:pointer; }
+  .mp-ticket:hover { background:#e9d5ff; }
+
+  .ticket-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:300; align-items:center; justify-content:center; }
+  .ticket-modal.open { display:flex; }
+  .ticket-modal-box { background:#fff; border-radius:10px; width:560px; max-height:88vh; overflow-y:auto; box-shadow:0 12px 40px rgba(0,0,0,0.18); }
+  .ticket-modal-box::-webkit-scrollbar { width:4px; }
+  .ticket-modal-box::-webkit-scrollbar-thumb { background:#e2e8f0; border-radius:2px; }
+  .tm-hdr { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; }
+  .tm-hdr-title { font-size:14px; font-weight:700; color:var(--navy); flex:1; }
+  .tm-close { width:28px; height:28px; border:1px solid var(--border); border-radius:5px; background:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:14px; color:var(--muted); }
+  .tm-close:hover { background:var(--bg); }
+  .tm-body { padding:18px 20px; display:flex; flex-direction:column; gap:14px; }
+  .tm-field { display:flex; flex-direction:column; gap:5px; }
+  .tm-label { font-size:11px; font-weight:700; color:var(--muted); display:flex; align-items:center; gap:4px; }
+  .tm-req { color:#dc2626; }
+  .tm-input { border:1px solid var(--border); border-radius:5px; padding:8px 10px; font-size:12px; font-family:inherit; outline:none; color:var(--text); background:#fff; }
+  .tm-input:focus { border-color:#93c5fd; box-shadow:0 0 0 2px rgba(147,197,253,0.3); }
+  .tm-textarea { border:1px solid var(--border); border-radius:5px; padding:8px 10px; font-size:12px; font-family:inherit; outline:none; color:var(--text); resize:vertical; min-height:80px; }
+  .tm-textarea:focus { border-color:#93c5fd; box-shadow:0 0 0 2px rgba(147,197,253,0.3); }
+  .tm-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .tm-select { border:1px solid var(--border); border-radius:5px; padding:8px 10px; font-size:12px; font-family:inherit; outline:none; color:var(--text); background:#fff; width:100%; }
+  .tm-select:focus { border-color:#93c5fd; }
+
+  .type-btns { display:flex; gap:8px; }
+  .type-btn { flex:1; padding:8px; border-radius:5px; font-size:12px; font-weight:600; cursor:pointer; border:2px solid var(--border); background:#fff; color:var(--muted); font-family:inherit; transition:all 0.15s; text-align:center; }
+  .type-btn.active-feature { border-color:#2563eb; background:#eff6ff; color:#2563eb; }
+  .type-btn.active-bug     { border-color:#dc2626; background:#fef2f2; color:#dc2626; }
+  .type-btn.active-task    { border-color:#16a34a; background:#f0fdf4; color:#16a34a; }
+
+  .tm-footer { padding:14px 20px; border-top:1px solid var(--border); display:flex; align-items:center; gap:8px; background:#f8fafc; border-radius:0 0 10px 10px; }
+  .tm-note   { font-size:11px; color:var(--muted); flex:1; }
+  .tm-cancel { padding:7px 16px; background:#fff; color:var(--muted); border:1px solid var(--border); border-radius:5px; font-size:12px; cursor:pointer; font-family:inherit; }
+  .tm-submit { padding:7px 20px; background:var(--navy); color:#fff; border:none; border-radius:5px; font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; display:flex; align-items:center; gap:6px; }
+  .tm-submit:hover { background:var(--navy-l); }
+  .tm-success { display:none; padding:20px; text-align:center; }
+  .tm-success.show { display:block; }
+  .tm-success-icon { font-size:36px; margin-bottom:10px; }
+  .tm-success-title { font-size:15px; font-weight:700; color:var(--done-text); margin-bottom:6px; }
+  .tm-success-id { font-size:13px; color:var(--muted); }
+  .tm-success-link { display:inline-block; margin-top:14px; padding:8px 20px; background:var(--navy); color:#fff; border-radius:5px; font-size:12px; font-weight:600; cursor:pointer; border:none; font-family:inherit; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="tb-mod">&#9776; Modules <span style="color:#475569;">&raquo;</span> <span>ESS Portal</span></div>
+  <input class="tb-search" type="text" placeholder="Search...">
+  <div class="tb-right">
+    <span class="tb-fy">FY: 2082-2083 | LY: 2082-2083</span>
+    <span style="color:#94a3b8;">&#128276;</span>
+    <div class="tb-av">PP</div>
+    <span class="tb-user">Pareekshit Pokharel</span>
+    <span style="color:#94a3b8;">&#9660;</span>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="s-top"><span style="color:#94a3b8;">&#9889;</span><span>Main Dashboard</span></div>
+    <div class="nav"><span>&#127968;</span> Dashboard</div>
+    <div class="nav"><span>&#9881;</span> Custom Menu <span class="ch">&#8250;</span></div>
+    <div class="nav"><span>&#128203;</span> Quick Links <span class="ch">&#8250;</span></div>
+    <div class="nav open"><span>&#10003;</span> My Tasks <span class="ch" style="transform:rotate(90deg)">&#8250;</span></div>
+    <div class="sub">
+      <div class="sub-i"><span class="dot"></span> Dashboard</div>
+      <div class="sub-i"><span class="dot"></span> Manage Task</div>
+      <div class="sub-i"><span class="dot"></span> Milestone</div>
+      <div class="sub-i"><span class="dot"></span> Kanban Board</div>
+      <div class="sub-i"><span class="dot"></span> Task Comments</div>
+      <div class="sub-i active"><span class="dot"></span> Task Planner</div>
+      <div class="sub-i"><span class="dot"></span> Workspace</div>
+      <div class="sub-i"><span class="dot"></span> My Calendar</div>
+    </div>
+    <div class="nav"><span>&#128197;</span> Attendance <span class="ch">&#8250;</span></div>
+    <div class="nav"><span>&#128202;</span> Reporting <span class="ch">&#8250;</span></div>
+    <div class="nav"><span>&#9199;</span> More Activities <span class="ch">&#8250;</span></div>
+    <div class="s-logo">
+      <div class="logo-c">N</div>
+      <div class="logo-t">Nimble<br><small>Infosys</small></div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="page-hdr">
+      <span class="breadcrumb">My Tasks &raquo; <strong>Task Planner</strong></span>
+    </div>
+
+    <div class="date-bar" id="date-bar">
+      <div class="date-tab has-tasks" id="dtab-0" onclick="switchDate(0)">
+        <div class="dt-day">Mon</div><div class="dt-num">17</div>
+        <div class="dt-count">3 tasks</div><div class="dt-dot"></div>
+      </div>
+      <div class="date-tab active has-tasks" id="dtab-1" onclick="switchDate(1)">
+        <div class="dt-day">Tue</div><div class="dt-num">18</div>
+        <div class="dt-count">4 tasks</div><div class="dt-dot"></div>
+      </div>
+      <div class="date-tab has-tasks" id="dtab-2" onclick="switchDate(2)">
+        <div class="dt-day">Wed</div><div class="dt-num">19</div>
+        <div class="dt-count">2 tasks</div><div class="dt-dot"></div>
+      </div>
+      <div class="date-tab" id="dtab-3" onclick="switchDate(3)">
+        <div class="dt-day">Thu</div><div class="dt-num">20</div>
+        <div class="dt-count">No tasks</div><div class="dt-dot"></div>
+      </div>
+      <button class="add-date-btn" onclick="openModal()">+ New Planner</button>
+    </div>
+
+    <div class="content">
+      <div class="planner">
+
+        <div class="planner-hdr">
+          <div>
+            <div class="planner-date" id="planner-date">Tuesday, 18 March 2026</div>
+            <div class="planner-label">Personal work plan &middot; Pareekshit Pokharel</div>
+          </div>
+          <div class="planner-hdr-right">
+            <div class="progress-wrap">
+              <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:50%"></div></div>
+              <span class="progress-label" id="progress-label">2 / 4 done</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="add-task-bar">
+          <input class="add-task-input" id="new-task-input" type="text" placeholder="What do you plan to work on today? (press Enter to add)" onkeydown="handleAddKey(event)">
+          <span class="est-label">Est.</span>
+          <input class="est-input" id="new-est-input" type="text" placeholder="HH:MM">
+          <select class="pri-select" id="new-pri-select">
+            <option value="normal">Normal</option>
+            <option value="high">High</option>
+            <option value="urgent">Urgent</option>
+          </select>
+          <button class="add-btn" onclick="addTask()">+ Add</button>
+        </div>
+
+        <div id="pending-section">
+          <div class="task-section-label">Pending</div>
+          <div class="task-list" id="pending-list">
+
+            <div class="task-card" id="tc-1">
+              <div class="task-check" onclick="toggleDone('tc-1')"><span class="task-check-tick">&#10003;</span></div>
+              <div class="task-body">
+                <div class="task-title">Finalize Compartment 2 dashboard wireframe and fix JS errors</div>
+                <div class="task-meta">
+                  <span class="meta-pill mp-est">&#9202; Est. 02:00</span>
+                  <span class="meta-pill mp-pri-high">High</span>
+                  <span class="meta-time">Added 8:45 AM</span>
+                </div>
+              </div>
+              <div class="task-actions">
+                <button class="t-btn" title="Add screenshot" onclick="toggleExpand('tc-1')">&#128247;</button>
+                <button class="t-btn" title="Convert to ticket" onclick="openTicketModal('tc-1')" style="color:#7e22ce;border-color:#e9d5ff;">&#127915;</button>
+                <button class="t-btn" title="Edit" onclick="editTask('tc-1')">&#9998;</button>
+                <button class="t-btn" title="Delete" onclick="deleteTask('tc-1')">&#215;</button>
+              </div>
+              <div class="task-expand" id="exp-tc-1">
+                <div class="expand-label">Screenshots / Attachments</div>
+                <div class="ss-area" onclick="document.getElementById('file-tc-1').click()">
+                  <div class="ss-area-text">&#128247; <span>Browse</span> or drag &amp; drop screenshots here</div>
+                  <input type="file" id="file-tc-1" style="display:none;" accept="image/*" multiple onchange="addThumbs('thumbs-tc-1', this)">
+                </div>
+                <div class="ss-thumbs" id="thumbs-tc-1"></div>
+              </div>
+            </div>
+
+            <div class="task-card" id="tc-2">
+              <div class="task-check" onclick="toggleDone('tc-2')"><span class="task-check-tick">&#10003;</span></div>
+              <div class="task-body">
+                <div class="task-title">Review and write feature request ticket for Task Planner module</div>
+                <div class="task-meta">
+                  <span class="meta-pill mp-est">&#9202; Est. 01:00</span>
+                  <span class="meta-pill mp-pri-normal">Normal</span>
+                  <span class="meta-time">Added 9:00 AM</span>
+                </div>
+              </div>
+              <div class="task-actions">
+                <button class="t-btn" title="Add screenshot" onclick="toggleExpand('tc-2')">&#128247;</button>
+                <button class="t-btn" title="Convert to ticket" onclick="openTicketModal('tc-2')" style="color:#7e22ce;border-color:#e9d5ff;">&#127915;</button>
+                <button class="t-btn" title="Edit" onclick="editTask('tc-2')">&#9998;</button>
+                <button class="t-btn" title="Delete" onclick="deleteTask('tc-2')">&#215;</button>
+              </div>
+              <div class="task-expand" id="exp-tc-2">
+                <div class="expand-label">Screenshots / Attachments</div>
+                <div class="ss-area" onclick="document.getElementById('file-tc-2').click()">
+                  <div class="ss-area-text">&#128247; <span>Browse</span> or drag &amp; drop screenshots here</div>
+                  <input type="file" id="file-tc-2" style="display:none;" accept="image/*" multiple onchange="addThumbs('thumbs-tc-2', this)">
+                </div>
+                <div class="ss-thumbs" id="thumbs-tc-2"></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div id="done-section">
+          <div class="task-section-label">Completed</div>
+          <div class="task-list" id="done-list">
+
+            <div class="task-card done" id="tc-3">
+              <div class="task-check" onclick="toggleDone('tc-3')"><span class="task-check-tick">&#10003;</span></div>
+              <div class="task-body">
+                <div class="task-title">Write QA test case template section in process handbook</div>
+                <div class="task-meta">
+                  <span class="meta-pill mp-est">&#9202; Est. 01:30</span>
+                  <span class="meta-pill mp-spent">&#9202; Spent 01:20</span>
+                  <span class="meta-pill mp-done">&#10003; Done 10:25 AM</span>
+                  <span class="meta-time">Added 8:30 AM</span>
+                </div>
+              </div>
+              <div class="task-actions">
+                <button class="t-btn" title="Screenshots" onclick="toggleExpand('tc-3')">&#128247;</button>
+                <button class="t-btn" onclick="toggleDone('tc-3')" title="Mark pending">&#8617;</button>
+                <button class="t-btn" onclick="deleteTask('tc-3')" title="Delete">&#215;</button>
+              </div>
+              <div class="task-expand" id="exp-tc-3">
+                <div class="expand-label">Screenshots / Attachments</div>
+                <div class="ss-area" onclick="document.getElementById('file-tc-3').click()">
+                  <div class="ss-area-text">&#128247; <span>Browse</span> or drag &amp; drop screenshots here</div>
+                  <input type="file" id="file-tc-3" style="display:none;" accept="image/*" multiple onchange="addThumbs('thumbs-tc-3', this)">
+                </div>
+                <div class="ss-thumbs" id="thumbs-tc-3"></div>
+              </div>
+            </div>
+
+            <div class="task-card done" id="tc-4">
+              <div class="task-check" onclick="toggleDone('tc-4')"><span class="task-check-tick">&#10003;</span></div>
+              <div class="task-body">
+                <div class="task-title">Daily standup &mdash; update Done, Doing, Blocked in the sheet</div>
+                <div class="task-meta">
+                  <span class="meta-pill mp-est">&#9202; Est. 00:15</span>
+                  <span class="meta-pill mp-spent">&#9202; Spent 00:10</span>
+                  <span class="meta-pill mp-done">&#10003; Done 9:28 AM</span>
+                  <span class="meta-time">Added 8:30 AM</span>
+                </div>
+              </div>
+              <div class="task-actions">
+                <button class="t-btn" title="Screenshots" onclick="toggleExpand('tc-4')">&#128247;</button>
+                <button class="t-btn" onclick="toggleDone('tc-4')" title="Mark pending">&#8617;</button>
+                <button class="t-btn" onclick="deleteTask('tc-4')" title="Delete">&#215;</button>
+              </div>
+              <div class="task-expand" id="exp-tc-4">
+                <div class="expand-label">Screenshots / Attachments</div>
+                <div class="ss-area" onclick="document.getElementById('file-tc-4').click()">
+                  <div class="ss-area-text">&#128247; <span>Browse</span> or drag &amp; drop screenshots here</div>
+                  <input type="file" id="file-tc-4" style="display:none;" accept="image/*" multiple onchange="addThumbs('thumbs-tc-4', this)">
+                </div>
+                <div class="ss-thumbs" id="thumbs-tc-4"></div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <div class="summary">
+
+        <div class="s-panel">
+          <div class="s-panel-hdr">&#128202; Today's Summary</div>
+          <div class="s-panel-body">
+            <div class="stat-row"><span class="stat-key">Total tasks</span><span class="stat-val" id="stat-total">4</span></div>
+            <div class="stat-row"><span class="stat-key">Completed</span><span class="stat-val green" id="stat-done">2</span></div>
+            <div class="stat-row"><span class="stat-key">Pending</span><span class="stat-val orange" id="stat-pending">2</span></div>
+            <div class="stat-row"><span class="stat-key">Est. total</span><span class="stat-val" id="stat-est">4h 45m</span></div>
+            <div class="stat-row"><span class="stat-key">Spent so far</span><span class="stat-val" id="stat-spent">1h 30m</span></div>
+          </div>
+        </div>
+
+        <div class="s-panel">
+          <div class="s-panel-hdr">&#9202; Time Tracker</div>
+          <div class="s-panel-body" id="time-tracker">
+            <div class="time-row"><span class="time-task">QA test case template</span><span class="time-done-badge">1h 20m</span></div>
+            <div class="time-row"><span class="time-task">Daily standup</span><span class="time-done-badge">10m</span></div>
+            <div class="time-row"><span class="time-task">Dashboard wireframe</span><span class="time-pending-badge">Est 2h</span></div>
+            <div class="time-row"><span class="time-task">Feature request ticket</span><span class="time-pending-badge">Est 1h</span></div>
+          </div>
+        </div>
+
+        <div class="s-panel">
+          <div class="s-panel-hdr">&#128197; This Week</div>
+          <div class="s-panel-body">
+            <div class="stat-row"><span class="stat-key">Mon 17</span><span class="stat-val green">3 / 3 &#10003;</span></div>
+            <div class="stat-row"><span class="stat-key">Tue 18</span><span class="stat-val orange">2 / 4</span></div>
+            <div class="stat-row"><span class="stat-key">Wed 19</span><span class="stat-val" style="color:#94a3b8;">2 planned</span></div>
+            <div class="stat-row"><span class="stat-key">Thu 20</span><span class="stat-val" style="color:#94a3b8;">&mdash;</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONVERT TO TICKET MODAL -->
+<div class="ticket-modal" id="ticket-modal">
+  <div class="ticket-modal-box">
+    <div id="tm-form-view">
+      <div class="tm-hdr">
+        <span style="font-size:18px;">&#127915;</span>
+        <span class="tm-hdr-title">Convert to Ticket</span>
+        <button class="tm-close" onclick="closeTicketModal()">&#215;</button>
+      </div>
+      <div class="tm-body">
+        <div style="background:#f8fafc;border:1px solid var(--border);border-radius:6px;padding:10px 12px;font-size:12px;color:var(--muted);">
+          From planner task: <strong id="tm-source-title" style="color:var(--text);">&mdash;</strong>
+        </div>
+        <div class="tm-field">
+          <label class="tm-label">Ticket Type <span class="tm-req">*</span></label>
+          <div class="type-btns">
+            <button class="type-btn active-feature" id="tt-feature" onclick="setTicketType('feature')">&#128640; Feature</button>
+            <button class="type-btn" id="tt-bug"     onclick="setTicketType('bug')">&#128030; Bug</button>
+            <button class="type-btn" id="tt-task"    onclick="setTicketType('task')">&#10003; Task</button>
+          </div>
+        </div>
+        <div class="tm-field">
+          <label class="tm-label">Task Title <span class="tm-req">*</span></label>
+          <input class="tm-input" id="tm-title" type="text" placeholder="Clear one-sentence description">
+        </div>
+        <div class="tm-field">
+          <label class="tm-label">Description <span class="tm-req">*</span></label>
+          <textarea class="tm-textarea" id="tm-desc" placeholder="Describe the work. What needs to happen and why?"></textarea>
+        </div>
+        <div class="tm-field" id="tm-ac-field">
+          <label class="tm-label">Acceptance Criteria <span class="tm-req">*</span></label>
+          <textarea class="tm-textarea" id="tm-ac" placeholder="Numbered list of conditions that must all be true.&#10;1. &#10;2. &#10;3. "></textarea>
+        </div>
+        <div class="tm-row">
+          <div class="tm-field">
+            <label class="tm-label">Project <span class="tm-req">*</span></label>
+            <select class="tm-select" id="tm-project">
+              <option value="">&mdash; Select &mdash;</option>
+              <option>Project Management (PMS)</option>
+              <option>HRMS Core</option>
+              <option>ESS Portal</option>
+              <option>CSD</option>
+            </select>
+          </div>
+          <div class="tm-field">
+            <label class="tm-label">Assignee</label>
+            <select class="tm-select" id="tm-assignee">
+              <option value="">&mdash; Select &mdash;</option>
+              <option>Pareekshit Pokharel</option>
+              <option>Prajwol Sigdel</option>
+              <option>Asmita Gautam</option>
+              <option>Sudesh Chaudhary</option>
+              <option>Gopal Chudal</option>
+            </select>
+          </div>
+        </div>
+        <div class="tm-row">
+          <div class="tm-field">
+            <label class="tm-label">Priority <span class="tm-req">*</span></label>
+            <select class="tm-select" id="tm-priority">
+              <option value="normal">Normal</option>
+              <option value="high">High</option>
+              <option value="urgent">Urgent</option>
+              <option value="immediate">Immediate</option>
+            </select>
+          </div>
+          <div class="tm-field">
+            <label class="tm-label">Estimated Hour</label>
+            <input class="tm-input" id="tm-est" type="text" placeholder="HH:MM  e.g. 02:00">
+          </div>
+        </div>
+        <div class="tm-field" id="tm-attachments-field" style="display:none;">
+          <label class="tm-label">Attachments from Planner</label>
+          <div id="tm-attachments-preview" style="display:flex;gap:8px;flex-wrap:wrap;padding:8px;background:#f8fafc;border:1px solid var(--border);border-radius:5px;min-height:50px;"></div>
+        </div>
+      </div>
+      <div class="tm-footer">
+        <span class="tm-note">Creates a new ticket in the PM Tool linked to today's planner.</span>
+        <button class="tm-cancel" onclick="closeTicketModal()">Cancel</button>
+        <button class="tm-submit" onclick="submitTicket()">&#127915; Create Ticket</button>
+      </div>
+    </div>
+    <div class="tm-success" id="tm-success-view">
+      <div class="tm-success-icon">&#127881;</div>
+      <div class="tm-success-title">Ticket Created Successfully</div>
+      <div class="tm-success-id" id="tm-success-id">Ticket has been added to the backlog.</div>
+      <button class="tm-success-link" onclick="closeTicketModal()">Back to Planner</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD DATE MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3>&#128197; New Planner Day</h3>
+    <div class="modal-field">
+      <label class="modal-label">Date</label>
+      <input type="date" class="modal-input" id="modal-date">
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Label (optional)</label>
+      <input type="text" class="modal-input" id="modal-label-input" placeholder="e.g. Sprint Review Day">
+    </div>
+    <div class="modal-footer">
+      <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-confirm" onclick="confirmNewDate()">Create Planner</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const dateLabels = [
+    { day:'Mon', num:'17', label:'Monday, 17 March 2026',    tasks:3 },
+    { day:'Tue', num:'18', label:'Tuesday, 18 March 2026',   tasks:4 },
+    { day:'Wed', num:'19', label:'Wednesday, 19 March 2026', tasks:2 },
+    { day:'Thu', num:'20', label:'Thursday, 20 March 2026',  tasks:0 },
+  ]
+  let activeDate = 1
+  let taskCounter = 10
+
+  function switchDate(idx) {
+    document.querySelectorAll('.date-tab').forEach((t,i) => t.classList.toggle('active', i === idx))
+    activeDate = idx
+    document.getElementById('planner-date').textContent = dateLabels[idx].label
+  }
+
+  function handleAddKey(e) { if (e.key === 'Enter') addTask() }
+
+  function addTask() {
+    const input = document.getElementById('new-task-input')
+    const estIn = document.getElementById('new-est-input')
+    const priIn = document.getElementById('new-pri-select')
+    const title = input.value.trim()
+    if (!title) return
+
+    const est = estIn.value.trim() || ''
+    const pri = priIn.value
+    const priMap   = { urgent:'mp-pri-urgent', high:'mp-pri-high', normal:'mp-pri-normal' }
+    const priLabel = { urgent:'Urgent', high:'High', normal:'Normal' }
+    const id  = 'tc-' + (++taskCounter)
+    const now = new Date().toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' })
+
+    const card = document.createElement('div')
+    card.className = 'task-card'
+    card.id = id
+    card.innerHTML =
+      '<div class="task-check" onclick="toggleDone(\'' + id + '\')"><span class="task-check-tick">&#10003;</span></div>' +
+      '<div class="task-body">' +
+        '<div class="task-title">' + title + '</div>' +
+        '<div class="task-meta">' +
+          (est ? '<span class="meta-pill mp-est">&#9202; Est. ' + est + '</span>' : '') +
+          '<span class="meta-pill ' + priMap[pri] + '">' + priLabel[pri] + '</span>' +
+          '<span class="meta-time">Added ' + now + '</span>' +
+        '</div>' +
+        '<div class="task-expand" id="exp-' + id + '">' +
+          '<div class="expand-label">Screenshots / Attachments</div>' +
+          '<div class="ss-area" onclick="document.getElementById(\'file-' + id + '\').click()">' +
+            '<div class="ss-area-text">&#128247; <span>Browse</span> or drag &amp; drop screenshots here</div>' +
+            '<input type="file" id="file-' + id + '" style="display:none;" accept="image/*" multiple onchange="addThumbs(\'thumbs-' + id + '\', this)">' +
+          '</div>' +
+          '<div class="ss-thumbs" id="thumbs-' + id + '"></div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="task-actions">' +
+        '<button class="t-btn" title="Screenshot" onclick="toggleExpand(\'' + id + '\')">&#128247;</button>' +
+        '<button class="t-btn" title="Convert to ticket" onclick="openTicketModal(\'' + id + '\')" style="color:#7e22ce;border-color:#e9d5ff;">&#127915;</button>' +
+        '<button class="t-btn" title="Delete" onclick="deleteTask(\'' + id + '\')">&#215;</button>' +
+      '</div>'
+
+    document.getElementById('pending-list').appendChild(card)
+    input.value = ''; estIn.value = ''; priIn.value = 'normal'
+    updateStats()
+  }
+
+  function toggleDone(id) {
+    const card = document.getElementById(id)
+    const isDone = card.classList.contains('done')
+
+    if (isDone) {
+      card.classList.remove('done')
+      const doneBadge = card.querySelector('.mp-done')
+      if (doneBadge) doneBadge.remove()
+      card.querySelector('.task-actions').innerHTML =
+        '<button class="t-btn" title="Screenshot" onclick="toggleExpand(\'' + id + '\')">&#128247;</button>' +
+        '<button class="t-btn" title="Convert to ticket" onclick="openTicketModal(\'' + id + '\')" style="color:#7e22ce;border-color:#e9d5ff;">&#127915;</button>' +
+        '<button class="t-btn" title="Edit" onclick="editTask(\'' + id + '\')">&#9998;</button>' +
+        '<button class="t-btn" title="Delete" onclick="deleteTask(\'' + id + '\')">&#215;</button>'
+      document.getElementById('pending-list').appendChild(card)
+    } else {
+      card.classList.add('done')
+      const now = new Date().toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' })
+      const badge = document.createElement('span')
+      badge.className = 'meta-pill mp-done'
+      badge.textContent = '\u2713 Done ' + now
+      card.querySelector('.task-meta').appendChild(badge)
+      card.querySelector('.task-actions').innerHTML =
+        '<button class="t-btn" title="Screenshot" onclick="toggleExpand(\'' + id + '\')">&#128247;</button>' +
+        '<button class="t-btn" title="Mark pending" onclick="toggleDone(\'' + id + '\')">&#8617;</button>' +
+        '<button class="t-btn" title="Delete" onclick="deleteTask(\'' + id + '\')">&#215;</button>'
+      document.getElementById('done-list').appendChild(card)
+    }
+    updateStats()
+  }
+
+  function deleteTask(id) { document.getElementById(id)?.remove(); updateStats() }
+
+  function editTask(id) {
+    const card  = document.getElementById(id)
+    const title = card.querySelector('.task-title')
+    document.getElementById('new-task-input').value = title.textContent
+    document.getElementById('new-task-input').focus()
+    deleteTask(id)
+  }
+
+  function updateStats() {
+    const all     = document.querySelectorAll('.task-card').length
+    const done    = document.querySelectorAll('.task-card.done').length
+    const pending = all - done
+    document.getElementById('stat-total').textContent   = all
+    document.getElementById('stat-done').textContent    = done
+    document.getElementById('stat-pending').textContent = pending
+    const pct = all ? Math.round(done / all * 100) : 0
+    document.getElementById('progress-fill').style.width = pct + '%'
+    document.getElementById('progress-label').textContent = done + ' / ' + all + ' done'
+  }
+
+  function openModal() {
+    document.getElementById('modal-date').value = new Date().toISOString().split('T')[0]
+    document.getElementById('modal').classList.add('open')
+  }
+  function closeModal() { document.getElementById('modal').classList.remove('open') }
+
+  function confirmNewDate() {
+    const dateVal = document.getElementById('modal-date').value
+    if (!dateVal) return
+    const d    = new Date(dateVal)
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+    const day  = days[d.getDay()]
+    const num  = d.getDate()
+    const label = d.toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' })
+    const bar  = document.getElementById('date-bar')
+    const btn  = bar.querySelector('.add-date-btn')
+    const idx  = document.querySelectorAll('.date-tab').length
+    const tab  = document.createElement('div')
+    tab.className = 'date-tab'
+    tab.id = 'dtab-' + idx
+    tab.setAttribute('onclick', 'switchDate(' + idx + ')')
+    tab.innerHTML = '<div class="dt-day">' + day + '</div><div class="dt-num">' + num + '</div><div class="dt-count">No tasks</div><div class="dt-dot"></div>'
+    bar.insertBefore(tab, btn)
+    dateLabels.push({ day, num: String(num), label, tasks:0 })
+    closeModal()
+    switchDate(idx)
+  }
+
+  function toggleExpand(id) {
+    const exp = document.getElementById('exp-' + id)
+    if (exp) exp.classList.toggle('open')
+  }
+
+  function addThumbs(containerId, input) {
+    const container = document.getElementById(containerId)
+    if (!container || !input.files) return
+    Array.from(input.files).forEach(file => {
+      const reader = new FileReader()
+      reader.onload = e => {
+        const thumb = document.createElement('div')
+        thumb.className = 'ss-thumb'
+        thumb.innerHTML = '<img src="' + e.target.result + '" alt="screenshot"><div class="ss-thumb-del" onclick="this.parentElement.remove()">&times;</div>'
+        container.appendChild(thumb)
+      }
+      reader.readAsDataURL(file)
+    })
+    input.value = ''
+  }
+
+  let currentTicketType = 'feature'
+  let convertSourceId   = null
+
+  function openTicketModal(taskId) {
+    convertSourceId = taskId
+    const card  = document.getElementById(taskId)
+    const title = card?.querySelector('.task-title')?.textContent || ''
+    const est   = card?.querySelector('.mp-est')?.textContent?.replace('\u23f2 Est. ','') || ''
+    const priEl = card?.querySelector('[class*="mp-pri-"]')
+    const pri   = priEl ? priEl.textContent.toLowerCase() : 'normal'
+
+    document.getElementById('tm-title').value         = title
+    document.getElementById('tm-source-title').textContent = title
+    document.getElementById('tm-est').value           = est
+    document.getElementById('tm-priority').value      = pri
+    document.getElementById('tm-desc').value          = ''
+    document.getElementById('tm-ac').value            = ''
+    document.getElementById('tm-project').value       = ''
+    document.getElementById('tm-assignee').value      = ''
+
+    const thumbs    = document.querySelectorAll('#thumbs-' + taskId + ' .ss-thumb img')
+    const prevWrap  = document.getElementById('tm-attachments-preview')
+    const prevField = document.getElementById('tm-attachments-field')
+    prevWrap.innerHTML = ''
+    if (thumbs.length > 0) {
+      thumbs.forEach(img => {
+        const d = document.createElement('div')
+        d.className = 'ss-thumb'
+        d.innerHTML = '<img src="' + img.src + '" alt="">'
+        prevWrap.appendChild(d)
+      })
+      prevField.style.display = 'block'
+    } else {
+      prevField.style.display = 'none'
+    }
+
+    document.getElementById('tm-form-view').style.display = 'block'
+    document.getElementById('tm-success-view').classList.remove('show')
+    setTicketType('feature')
+    document.getElementById('ticket-modal').classList.add('open')
+  }
+
+  function closeTicketModal() {
+    document.getElementById('ticket-modal').classList.remove('open')
+    convertSourceId = null
+  }
+
+  function setTicketType(type) {
+    currentTicketType = type
+    const btns    = { feature:'tt-feature', bug:'tt-bug', task:'tt-task' }
+    const classes = { feature:'active-feature', bug:'active-bug', task:'active-task' }
+    Object.keys(btns).forEach(t => {
+      document.getElementById(btns[t]).className = 'type-btn' + (t === type ? ' ' + classes[t] : '')
+    })
+    document.getElementById('tm-ac-field').style.display = type === 'feature' ? 'block' : 'none'
+  }
+
+  function submitTicket() {
+    const title   = document.getElementById('tm-title').value.trim()
+    const project = document.getElementById('tm-project').value
+    const desc    = document.getElementById('tm-desc').value.trim()
+    if (!title || !project || !desc) {
+      alert('Please fill in Title, Project, and Description before creating the ticket.')
+      return
+    }
+    const fakeId = '#' + (33200 + Math.floor(Math.random() * 100))
+    document.getElementById('tm-success-id').textContent = 'Ticket ' + fakeId + ' \u2014 \u201c' + title + '\u201d has been added to the backlog.'
+    if (convertSourceId) {
+      const card = document.getElementById(convertSourceId)
+      if (card && !card.querySelector('.mp-ticket')) {
+        const badge = document.createElement('span')
+        badge.className = 'meta-pill mp-ticket'
+        badge.title = 'Linked ticket ' + fakeId
+        badge.textContent = '\u{1F3AB} ' + fakeId
+        card.querySelector('.task-meta').appendChild(badge)
+      }
+    }
+    document.getElementById('tm-form-view').style.display = 'none'
+    document.getElementById('tm-success-view').classList.add('show')
+  }
+
+  document.getElementById('ticket-modal').addEventListener('click', function(e) { if (e.target === this) closeTicketModal() })
+  document.getElementById('modal').addEventListener('click', function(e) { if (e.target === this) closeModal() })
+</script>
+</body>
+</html>

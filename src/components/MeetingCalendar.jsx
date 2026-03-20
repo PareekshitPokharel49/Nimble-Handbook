@@ -26,7 +26,7 @@ const meetings = [
   {
     time: '2:00 PM',
     mon:  { label: 'SA sync', sub: '20 min · SA only', color: '#FDF0EC', text: '#8B2500' },
-    tue:  { label: 'Dev sync', sub: '20 min · Dev only', color: '#EBF5FF', text: '#1F4E79' },
+    tue:  null,
     wed:  null,
     thu:  { label: 'QA sync', sub: '20 min · QA only', color: '#FEF9E7', text: '#7B4F00' },
     fri:  null,

@@ -60,7 +60,7 @@ const slaData = [
 export default function ToBeFlow() {
   return (
     <>
-      <h2 className="section-title">5. Improved Ticket Flow — To Be</h2>
+      <h2 className="section-title">6. Improved Ticket Flow — To Be</h2>
       <p className="section-subtitle">Version 4.0 · QA pre-check gate + main branch test added · Effective from Day 1</p>
 
       <div style={S.wrap}>
