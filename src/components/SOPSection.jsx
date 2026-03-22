@@ -294,14 +294,14 @@ function MonitoringBlock({ items }) {
 const saRole = {
   id: 'sa',
   title: 'System Analyst (SA)',
-  owner: 'Team: Prajwol · Annant · Pareekshit · Sudesh · Gopi',
+  owner: 'SA Team',
   color: '#FDF0EC', text: '#8B2500', accent: '#C0391B',
   monitoring: [
-    { text: 'Check Daily Log Book entries every morning before standup ends — flag missing entries immediately.', owner: 'Prajwol', fallback: 'Pareekshit' },
-    { text: 'Use Work Log Report filtered by date and team member to build the weekly summary for Team Lead.', owner: 'Prajwol', fallback: 'Pareekshit' },
+    { text: 'Check Daily Log Book entries every morning before standup ends — flag missing entries immediately.', owner: 'All SA' },
+    { text: 'Use Work Log Report filtered by date and team member to build the weekly summary for Team Lead.', owner: 'All SA' },
     { text: 'If a ticket has exceeded its estimate — check in with the developer the same day.', owner: 'All SA' },
     { text: 'If a developer is blocked — resolve it same day. Escalate to Team Lead or CEO before end of day if unresolved.', owner: 'All SA' },
-    { text: 'Report to Team Lead each week: tickets completed, in progress, overdue, and blocked.', owner: 'Annant', fallback: 'Sudesh' },
+    { text: 'Report to Team Lead each week: tickets completed, in progress, overdue, and blocked.', owner: 'All SA' },
   ],
   steps: [
     {
@@ -352,7 +352,7 @@ const saRole = {
       ],
     },
     {
-      num: '06', label: 'Deployment Preparation', owner: 'Gopi',
+      num: '06', label: 'Deployment Preparation', owner: 'SA Team',
       steps: [
         'Prepare a Deployment Note for every release — no deployment proceeds without one.',
         'Get written approval from Team Lead or CEO — verbal approval is not enough.',
@@ -416,7 +416,7 @@ const saRole = {
 const devRole = {
   id: 'dev',
   title: 'Developer',
-  owner: 'Team: Gopal (Deployment) · Prashant · Chiranjivi · Ashmita · Anu',
+  owner: 'Dev Team',
   color: '#EBF5FF', text: '#1F4E79', accent: '#1F4E79',
   monitoring: [
     { text: 'Fill in the Daily Log Book before standup ends — every day, no exceptions.', owner: 'All Dev' },
@@ -512,7 +512,7 @@ const devRole = {
 const qaRole = {
   id: 'qa',
   title: 'QA Team',
-  owner: 'Team: Shramila · Sadikshya · Bimala',
+  owner: 'QA Team',
   color: '#F0FDF4', text: '#14532D', accent: '#15803D',
   monitoring: [
     { text: 'Report test results per ticket as a comment — include result, modules tested, and any defects found.', owner: 'All QA' },
