@@ -67,6 +67,11 @@ export default function App() {
   const [active, setActive] = useState('org')
 
   useEffect(() => {
+    history.scrollRestoration = 'manual'
+    window.scrollTo(0, 0)
+  }, [])
+
+  useEffect(() => {
     if (!unlocked) return
     const observer = new IntersectionObserver(
       (entries) => {
