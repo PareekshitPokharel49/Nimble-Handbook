@@ -70,7 +70,7 @@ const sprintPhases = [
     what: [
       'Gopi collects all QA sign-offs and assembles the deployment batch',
       'Deployment Prep Log completed — tickets, SQL scripts, impact analysis, rollback plan',
-      'Deployment Note prepared and submitted for written approval from Ram sir / Khem sir',
+      'Deployment Note prepared and submitted for written approval from Team Lead / CEO',
       'No deployment proceeds without written approval — verbal approval is not accepted',
     ],
   },
@@ -95,7 +95,7 @@ const sprintPhases = [
       'Held after deployment confirmation — 20 to 30 minutes',
       'Review: tickets completed, pushed, and why — live issue volume vs planned work ratio noted',
       'Identify one concrete process improvement to carry into the next sprint',
-      'SA documents lessons learned and shares summary with Ram sir',
+      'SA documents lessons learned and shares summary with Team Lead',
     ],
   },
 ]

@@ -1,16 +1,16 @@
 const S = {
   wrap:       { display:'flex', flexDirection:'column', width:'100%', fontFamily:'Arial, sans-serif' },
   laneHeaders:{ display:'flex', width:'100%' },
-  laneHeader: (bg, color) => ({ flex:1, textAlign:'center', fontSize:12, fontWeight:700, padding:'7px 4px', borderRadius:'6px 6px 0 0', border:'1px solid rgba(0,0,0,0.08)', margin:'0 3px', background:bg, color }),
+  laneHeader: (bg, color) => ({ flex:1, textAlign:'center', fontSize:10, fontWeight:700, padding:'7px 2px', borderRadius:'6px 6px 0 0', border:'1px solid rgba(0,0,0,0.08)', margin:'0 2px', background:bg, color }),
   laneRow:    (minH=64) => ({ display:'flex', width:'100%', minHeight:minH, alignItems:'stretch' }),
-  cell:       (bg) => ({ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'6px 4px', margin:'0 3px', borderLeft:'1px solid rgba(0,0,0,0.05)', borderRight:'1px solid rgba(0,0,0,0.05)', background:bg }),
-  step:       (bg, color, border, extra={}) => ({ width:'92%', padding:'6px 8px', borderRadius:6, fontSize:12, lineHeight:1.45, textAlign:'center', border:`1px solid ${border}`, background:bg, color, ...extra }),
-  stepTitle:  { display:'block', fontSize:12.5, marginBottom:2, fontWeight:700 },
-  ul:         { textAlign:'left', paddingLeft:14, marginTop:4, fontSize:11 },
+  cell:       (bg) => ({ flex:1, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:'5px 3px', margin:'0 2px', borderLeft:'1px solid rgba(0,0,0,0.05)', borderRight:'1px solid rgba(0,0,0,0.05)', background:bg }),
+  step:       (bg, color, border, extra={}) => ({ width:'94%', padding:'5px 7px', borderRadius:6, fontSize:10.5, lineHeight:1.4, textAlign:'center', border:`1px solid ${border}`, background:bg, color, ...extra }),
+  stepTitle:  { display:'block', fontSize:11, marginBottom:2, fontWeight:700 },
+  ul:         { textAlign:'left', paddingLeft:12, marginTop:4, fontSize:10 },
   li:         { marginBottom:2 },
-  arrowRow:   { display:'flex', width:'100%', height:24, alignItems:'center' },
-  arrowCell:  { flex:1, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 3px', fontSize:15, color:'#9CA3AF' },
-  badge:      (bg, color) => ({ fontSize:11, background:bg, color, borderRadius:4, padding:'2px 7px', marginTop:4, display:'inline-block' }),
+  arrowRow:   { display:'flex', width:'100%', height:22, alignItems:'center' },
+  arrowCell:  { flex:1, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 2px', fontSize:14, color:'#9CA3AF' },
+  badge:      (bg, color) => ({ fontSize:10, background:bg, color, borderRadius:4, padding:'2px 6px', marginTop:4, display:'inline-block' }),
   pill:       (bg, color) => ({ display:'inline-block', padding:'2px 8px', borderRadius:10, fontSize:10, fontWeight:700, background:bg, color }),
   slaWrap:    { marginBottom:16 },
   slaTitle:   { fontSize:12, fontWeight:700, color:'#1F2937', marginBottom:6, paddingLeft:2 },
@@ -19,6 +19,7 @@ const S = {
   slaTd:      { padding:'6px 10px', borderBottom:'1px solid #E5E7EB' },
   sectionRow: { display:'flex', justifyContent:'center', padding:'8px 0 4px' },
   sectionLbl: { fontSize:12, fontWeight:700, color:'#065F46', background:'#D1FAE5', borderRadius:4, padding:'5px 16px', display:'inline-block' },
+  parallelBanner: { display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:'5px 12px', background:'#EFF6FF', border:'1px solid #BFDBFE', borderRadius:6, margin:'4px 2px', fontSize:10.5, fontWeight:700, color:'#1D4ED8' },
 }
 
 const COLS = {
@@ -26,25 +27,27 @@ const COLS = {
   sa:     '#F5F3FF',
   dev:    '#FFFBEB',
   qa:     '#FDF2F8',
+  tw:     '#E0F2FE',
   deploy: '#ECFDF5',
 }
 
 function Arrow({ col, label, labelColor='#065F46' }) {
   return (
     <div style={S.arrowCell}>
-      {col ? <>↓{label && <span style={{ fontSize:10, color:labelColor, marginLeft:3 }}>{label}</span>}</> : null}
+      {col ? <>↓{label && <span style={{ fontSize:9, color:labelColor, marginLeft:3 }}>{label}</span>}</> : null}
     </div>
   )
 }
 
-function ArrowRow({ csd, sa, dev, qa, deploy, saLabel, devLabel, qaLabel, deployLabel, csdRed, saRed }) {
+function ArrowRow({ csd, sa, dev, qa, tw, deploy, csdRed, saRed }) {
   return (
     <div style={S.arrowRow}>
-      <Arrow col={csd}    label={csd    && csd !== true ? csd : undefined}    labelColor={csdRed    ? '#B91C1C' : '#065F46'} />
-      <Arrow col={sa}     label={sa     && sa  !== true ? sa  : undefined}    labelColor={saRed     ? '#B91C1C' : '#065F46'} />
-      <Arrow col={dev}    label={dev    && dev !== true ? dev : undefined} />
-      <Arrow col={qa}     label={qa     && qa  !== true ? qa  : undefined} />
-      <Arrow col={deploy} label={deploy && deploy !== true ? deploy : undefined} />
+      <Arrow col={csd}    label={csd    && csd    !== true ? csd    : undefined} labelColor={csdRed ? '#B91C1C' : '#065F46'} />
+      <Arrow col={sa}     label={sa     && sa      !== true ? sa     : undefined} labelColor={saRed  ? '#B91C1C' : '#065F46'} />
+      <Arrow col={dev}    label={dev    && dev     !== true ? dev    : undefined} />
+      <Arrow col={qa}     label={qa     && qa      !== true ? qa     : undefined} />
+      <Arrow col={tw}     label={tw     && tw      !== true ? tw     : undefined} />
+      <Arrow col={deploy} label={deploy && deploy  !== true ? deploy : undefined} />
     </div>
   )
 }
@@ -52,16 +55,18 @@ function ArrowRow({ csd, sa, dev, qa, deploy, saLabel, devLabel, qaLabel, deploy
 const slaData = [
   { badge: ['#FEE2E2','#7F1D1D'], name:'Immediate', meaning:'System down · Data loss · Nothing works',              triage:'3 – 4 hours',       resolve:'Same day' },
   { badge: ['#FEF3C7','#78350F'], name:'Urgent',    meaning:'Critical feature broken · Major client impact',        triage:'1 business day',    resolve:'1 business day' },
-  { badge: ['#FEF9C3','#713F12'], name:'High',       meaning:'Important feature broken · Workaround exists',         triage:'2 business days',   resolve:'2 business days' },
-  { badge: ['#DBEAFE','#1E3A8A'], name:'Normal',     meaning:'Minor bug or standard feature request',                triage:'4 business days',   resolve:'Current sprint' },
-  { badge: ['#F3F4F6','#374151'], name:'Low',         meaning:'Cosmetic issue · Nice to have',                        triage:'1 week',            resolve:'Next sprint' },
+  { badge: ['#FEF9C3','#713F12'], name:'High',      meaning:'Important feature broken · Workaround exists',         triage:'2 business days',   resolve:'2 business days' },
+  { badge: ['#DBEAFE','#1E3A8A'], name:'Normal',    meaning:'Minor bug or standard feature request',                triage:'4 business days',   resolve:'Current sprint' },
+  { badge: ['#F3F4F6','#374151'], name:'Low',        meaning:'Cosmetic issue · Nice to have',                        triage:'1 week',            resolve:'Next sprint' },
 ]
+
+const E = () => null // empty placeholder
 
 export default function ToBeFlow() {
   return (
     <>
       <h2 className="section-title">6. Improved Ticket Flow — To Be</h2>
-      <p className="section-subtitle">Version 4.0 · QA pre-check gate + main branch test added · Effective from Day 1</p>
+      <p className="section-subtitle">Version 5.0 · Technical Writer parallel path added · Effective from Day 1</p>
 
       <div style={S.wrap}>
 
@@ -98,6 +103,7 @@ export default function ToBeFlow() {
           <div style={S.laneHeader('#EDE9FE','#5B21B6')}>System Analyst</div>
           <div style={S.laneHeader('#FEF3C7','#92400E')}>Developer</div>
           <div style={S.laneHeader('#FCE7F3','#9D174D')}>QA</div>
+          <div style={S.laneHeader('#BAE6FD','#0369A1')}>Tech Writer</div>
           <div style={S.laneHeader('#D1FAE5','#065F46')}>Deployment</div>
         </div>
 
@@ -109,12 +115,12 @@ export default function ToBeFlow() {
               Email · Phone · Web<br />CSD logs ticket with title + description
             </div>
           </div>
-          <div style={S.cell(COLS.sa)} /><div style={S.cell(COLS.dev)} /><div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.deploy)} />
+          <div style={S.cell(COLS.sa)} /><div style={S.cell(COLS.dev)} /><div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.tw)} /><div style={S.cell(COLS.deploy)} />
         </div>
         <ArrowRow csd={true} />
 
         {/* ROW 2 — SA Gate 1 */}
-        <div style={S.laneRow(150)}>
+        <div style={S.laneRow(170)}>
           <div style={S.cell(COLS.csd)} />
           <div style={S.cell(COLS.sa)}>
             <div style={S.step('#FEF9C3','#713F12','#FDE047',{fontWeight:700})}>
@@ -128,57 +134,58 @@ export default function ToBeFlow() {
                 <li style={S.li}><b>If Invalid / Duplicate / Out of scope:</b> Reject with written reason</li>
                 <li style={S.li}>Assign to: Backlog or Current Sprint</li>
                 <li style={S.li}>Set start date, end date, story points</li>
-                <li style={S.li}><b>Ticket must be ≤ 8 hours of dev effort</b> — if larger, break it into sub-tickets before assigning</li>
+                <li style={S.li}><b>Ticket must be ≤ 8 hours of dev effort</b> — if larger, break into sub-tickets</li>
+                <li style={S.li}><b>Documentation Required: Yes / No</b> — mark Yes for new features or complex changes</li>
               </ul>
             </div>
             <span style={S.badge('#FEE2E2','#B91C1C')}>✗ Invalid / Duplicate / Out of scope — Rejected</span>
           </div>
-          <div style={S.cell(COLS.dev)} /><div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.deploy)} />
+          <div style={S.cell(COLS.dev)} /><div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.tw)} /><div style={S.cell(COLS.deploy)} />
         </div>
 
         {/* REJECTION PATH */}
         <div style={S.arrowRow}>
-          <div style={S.arrowCell}>↓ <span style={{ fontSize:10, color:'#B91C1C', marginLeft:3 }}>Rejected</span></div>
-          <div style={S.arrowCell}>↓ <span style={{ fontSize:10, color:'#065F46', marginLeft:3 }}>Approved</span></div>
-          <div style={S.arrowCell} /><div style={S.arrowCell} /><div style={S.arrowCell} />
+          <div style={S.arrowCell}>↓ <span style={{ fontSize:9, color:'#B91C1C', marginLeft:3 }}>Rejected</span></div>
+          <div style={S.arrowCell}>↓ <span style={{ fontSize:9, color:'#065F46', marginLeft:3 }}>Approved</span></div>
+          <div style={S.arrowCell} /><div style={S.arrowCell} /><div style={S.arrowCell} /><div style={S.arrowCell} />
         </div>
 
         <div style={S.laneRow(52)}>
           <div style={S.cell(COLS.csd)}>
-            <div style={{ ...S.step('#FEE2E2','#7F1D1D','#FCA5A5'), borderRadius:20, fontSize:11 }}>
+            <div style={{ ...S.step('#FEE2E2','#7F1D1D','#FCA5A5'), borderRadius:20, fontSize:10 }}>
               ✗ Ticket Rejected<br />Written reason sent to CSD<br />Status → Closed
             </div>
           </div>
-          <div style={S.cell(COLS.sa)} /><div style={S.cell(COLS.dev)} /><div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.deploy)} />
+          <div style={S.cell(COLS.sa)} /><div style={S.cell(COLS.dev)} /><div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.tw)} /><div style={S.cell(COLS.deploy)} />
         </div>
         <ArrowRow sa={true} />
 
         {/* ROW 3 — CSD notified */}
         <div style={S.laneRow(52)}>
           <div style={S.cell(COLS.csd)}>
-            <div style={{ ...S.step('#DBEAFE','#1E3A8A','#93C5FD'), fontSize:11 }}>
+            <div style={{ ...S.step('#DBEAFE','#1E3A8A','#93C5FD'), fontSize:10 }}>
               <b style={S.stepTitle}>CSD notified</b>
               Ticket assigned · Sprint · Est. end date
             </div>
           </div>
-          <div style={S.cell(COLS.sa)} /><div style={S.cell(COLS.dev)} /><div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.deploy)} />
+          <div style={S.cell(COLS.sa)} /><div style={S.cell(COLS.dev)} /><div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.tw)} /><div style={S.cell(COLS.deploy)} />
         </div>
         <ArrowRow dev={true} />
 
         {/* ROW 4A — Dev Gate 1 */}
-        <div style={S.laneRow(130)}>
+        <div style={S.laneRow(110)}>
           <div style={S.cell(COLS.csd)} /><div style={S.cell(COLS.sa)} />
           <div style={S.cell(COLS.dev)}>
             <div style={S.step('#FEF9C3','#713F12','#FDE047',{fontWeight:700})}>
               <b style={S.stepTitle}>◆ Dev Gate 1 — Before starting work</b>
               <ul style={S.ul}>
-                <li style={S.li}><b>Verify SA fields are filled</b> — Description, Expected Behaviour, Acceptance Criteria, Steps to Replicate (for bugs) must all be present before picking up the ticket</li>
-                <li style={S.li}><b>Ticket must be ≤ 8 hours</b> — if the scope feels larger, stop and ask SA to break it into sub-tickets before beginning</li>
+                <li style={S.li}><b>Verify SA fields are filled</b> — Description, Expected Behaviour, Acceptance Criteria, Steps to Replicate (for bugs) must all be present</li>
+                <li style={S.li}><b>Ticket must be ≤ 8 hours</b> — if larger, stop and ask SA to break it down</li>
               </ul>
             </div>
             <span style={S.badge('#FEE2E2','#B91C1C')}>✗ SA fields missing or ticket too large — return to SA</span>
           </div>
-          <div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.deploy)} />
+          <div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.tw)} /><div style={S.cell(COLS.deploy)} />
         </div>
         <ArrowRow dev={true} />
 
@@ -191,7 +198,7 @@ export default function ToBeFlow() {
               Status → In Progress<br />Discusses with SA if needed
             </div>
           </div>
-          <div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.deploy)} />
+          <div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.tw)} /><div style={S.cell(COLS.deploy)} />
         </div>
         <ArrowRow dev={true} />
 
@@ -206,27 +213,27 @@ export default function ToBeFlow() {
                 <li style={S.li}>Impact analysis filled in ✓</li>
                 <li style={S.li}>Description of fix added ✓</li>
                 <li style={S.li}>Module / area of change noted ✓</li>
-                <li style={S.li}><b>If ticket took or will take &gt; 8 hours</b> — stop and ask SA to break it down before continuing</li>
+                <li style={S.li}><b>If ticket took or will take &gt; 8 hours</b> — stop and ask SA to break it down</li>
               </ul>
             </div>
             <span style={S.badge('#FEE2E2','#B91C1C')}>✗ Not ready — fix and recheck</span>
           </div>
-          <div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.deploy)} />
+          <div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.tw)} /><div style={S.cell(COLS.deploy)} />
         </div>
         <div style={S.arrowRow}>
           <div style={S.arrowCell} /><div style={S.arrowCell} />
-          <div style={S.arrowCell}>↓ <span style={{ fontSize:10, color:'#065F46', marginLeft:3 }}>Ready for QA</span></div>
-          <div style={S.arrowCell} /><div style={S.arrowCell} />
+          <div style={S.arrowCell}>↓ <span style={{ fontSize:9, color:'#065F46', marginLeft:3 }}>Ready for QA</span></div>
+          <div style={S.arrowCell} /><div style={S.arrowCell} /><div style={S.arrowCell} />
         </div>
 
         {/* ROW 6 — CSD notified QA */}
         <div style={S.laneRow(52)}>
           <div style={S.cell(COLS.csd)}>
-            <div style={{ ...S.step('#DBEAFE','#1E3A8A','#93C5FD'), fontSize:11 }}>
+            <div style={{ ...S.step('#DBEAFE','#1E3A8A','#93C5FD'), fontSize:10 }}>
               <b style={S.stepTitle}>CSD notified</b>Ticket now in QA
             </div>
           </div>
-          <div style={S.cell(COLS.sa)} /><div style={S.cell(COLS.dev)} /><div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.deploy)} />
+          <div style={S.cell(COLS.sa)} /><div style={S.cell(COLS.dev)} /><div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.tw)} /><div style={S.cell(COLS.deploy)} />
         </div>
         <ArrowRow qa={true} />
 
@@ -244,12 +251,12 @@ export default function ToBeFlow() {
             </div>
             <span style={S.badge('#FEE2E2','#B91C1C')}>✗ Anything missing — send back to SA</span>
           </div>
-          <div style={S.cell(COLS.deploy)} />
+          <div style={S.cell(COLS.tw)} /><div style={S.cell(COLS.deploy)} />
         </div>
         <div style={S.arrowRow}>
           <div style={S.arrowCell} /><div style={S.arrowCell} /><div style={S.arrowCell} />
           <div style={S.arrowCell}>↓ <span style={{ fontSize:9, color:'#065F46', marginLeft:3 }}>All present</span></div>
-          <div style={S.arrowCell} />
+          <div style={S.arrowCell} /><div style={S.arrowCell} />
         </div>
 
         {/* ROW 7B — QA writes test cases */}
@@ -261,7 +268,7 @@ export default function ToBeFlow() {
               Based on acceptance criteria<br />Covers all areas from impact analysis
             </div>
           </div>
-          <div style={S.cell(COLS.deploy)} />
+          <div style={S.cell(COLS.tw)} /><div style={S.cell(COLS.deploy)} />
         </div>
         <ArrowRow qa={true} />
 
@@ -281,12 +288,12 @@ export default function ToBeFlow() {
             <span style={S.badge('#FEE2E2','#B91C1C')}>✗ Fail — bug logged with steps — back to Dev</span>
             <span style={S.badge('#D1FAE5','#065F46')}>✓ Pass — request merge to develop</span>
           </div>
-          <div style={S.cell(COLS.deploy)} />
+          <div style={S.cell(COLS.tw)} /><div style={S.cell(COLS.deploy)} />
         </div>
         <div style={S.arrowRow}>
           <div style={S.arrowCell} /><div style={S.arrowCell} />
-          <div style={S.arrowCell}>↓ <span style={{ fontSize:10, color:'#065F46', marginLeft:3 }}>merge develop</span></div>
-          <div style={S.arrowCell} /><div style={S.arrowCell} />
+          <div style={S.arrowCell}>↓ <span style={{ fontSize:9, color:'#065F46', marginLeft:3 }}>merge develop</span></div>
+          <div style={S.arrowCell} /><div style={S.arrowCell} /><div style={S.arrowCell} />
         </div>
 
         {/* ROW 9 — Dev merges develop */}
@@ -297,7 +304,7 @@ export default function ToBeFlow() {
               <b style={S.stepTitle}>Developer merges</b>into develop branch
             </div>
           </div>
-          <div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.deploy)} />
+          <div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.tw)} /><div style={S.cell(COLS.deploy)} />
         </div>
         <ArrowRow qa={true} />
 
@@ -317,12 +324,12 @@ export default function ToBeFlow() {
             <span style={S.badge('#FEE2E2','#B91C1C')}>✗ Fail — bug logged — back to Dev</span>
             <span style={S.badge('#D1FAE5','#065F46')}>✓ Pass — request merge to main</span>
           </div>
-          <div style={S.cell(COLS.deploy)} />
+          <div style={S.cell(COLS.tw)} /><div style={S.cell(COLS.deploy)} />
         </div>
         <div style={S.arrowRow}>
           <div style={S.arrowCell} /><div style={S.arrowCell} />
-          <div style={S.arrowCell}>↓ <span style={{ fontSize:10, color:'#065F46', marginLeft:3 }}>merge main</span></div>
-          <div style={S.arrowCell} /><div style={S.arrowCell} />
+          <div style={S.arrowCell}>↓ <span style={{ fontSize:9, color:'#065F46', marginLeft:3 }}>merge main</span></div>
+          <div style={S.arrowCell} /><div style={S.arrowCell} /><div style={S.arrowCell} />
         </div>
 
         {/* ROW 10B — Dev merges main */}
@@ -333,7 +340,7 @@ export default function ToBeFlow() {
               <b style={S.stepTitle}>Developer merges</b>into main branch
             </div>
           </div>
-          <div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.deploy)} />
+          <div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.tw)} /><div style={S.cell(COLS.deploy)} />
         </div>
         <ArrowRow qa={true} />
 
@@ -353,12 +360,12 @@ export default function ToBeFlow() {
             <span style={S.badge('#FEE2E2','#B91C1C')}>✗ Fail — bug logged — back to Dev</span>
             <span style={S.badge('#D1FAE5','#065F46')}>✓ Pass — QA sign-off</span>
           </div>
-          <div style={S.cell(COLS.deploy)} />
+          <div style={S.cell(COLS.tw)} /><div style={S.cell(COLS.deploy)} />
         </div>
         <div style={S.arrowRow}>
           <div style={S.arrowCell} />
-          <div style={S.arrowCell}>↓ <span style={{ fontSize:10, color:'#065F46', marginLeft:3 }}>QA sign-off received</span></div>
-          <div style={S.arrowCell} /><div style={S.arrowCell} /><div style={S.arrowCell} />
+          <div style={S.arrowCell}>↓ <span style={{ fontSize:9, color:'#065F46', marginLeft:3 }}>QA sign-off received</span></div>
+          <div style={S.arrowCell} /><div style={S.arrowCell} /><div style={S.arrowCell} /><div style={S.arrowCell} />
         </div>
 
         {/* ROW 11 — SA Gate 3 */}
@@ -376,43 +383,92 @@ export default function ToBeFlow() {
               </ul>
             </div>
           </div>
-          <div style={S.cell(COLS.dev)} /><div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.deploy)} />
+          <div style={S.cell(COLS.dev)} /><div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.tw)} /><div style={S.cell(COLS.deploy)} />
         </div>
         <ArrowRow sa={true} />
 
-        {/* DEPLOYMENT SECTION LABEL */}
-        <div style={S.sectionRow}><span style={S.sectionLbl}>Deployment Review — System Analyst</span></div>
-
-        {/* DEPLOYMENT STEPS */}
-        {[
-          { step:'Step 1', label:'Extract deployment report from Nimble HRMIS' },
-          { step:'Step 2', label:'Run Git Analyser · MAIN vs DEVELOP' },
-          { step:'Step 3', label:'Upload to Internal Tool · Resolve discrepancies' },
-        ].map(({ step, label }) => (
-          <div key={step}>
-            <div style={S.laneRow(52)}>
-              <div style={S.cell(COLS.csd)} /><div style={S.cell(COLS.sa)} /><div style={S.cell(COLS.dev)} /><div style={S.cell(COLS.qa)} />
-              <div style={S.cell(COLS.deploy)}>
-                <div style={S.step('#D1FAE5','#064E3B','#6EE7B7')}><b style={S.stepTitle}>{step}</b>{label}</div>
-              </div>
+        {/* ── DOCUMENTATION REQUIRED DECISION ─────────────────────────────── */}
+        <div style={S.laneRow(90)}>
+          <div style={S.cell(COLS.csd)} />
+          <div style={S.cell(COLS.sa)}>
+            <div style={S.step('#FEF9C3','#713F12','#FDE047',{fontWeight:700})}>
+              <b style={S.stepTitle}>◆ Documentation Required?</b>
+              SA checks the flag set during triage.<br />
+              New features and complex changes require documentation.
             </div>
-            <ArrowRow deploy={true} />
+            <span style={S.badge('#BAE6FD','#0C4A6E')}>YES → Tech Writer + Deployment run in parallel ↓</span>
+            <span style={S.badge('#F3F4F6','#374151')}>NO → Deployment only ↓</span>
           </div>
-        ))}
+          <div style={S.cell(COLS.dev)} /><div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.tw)} /><div style={S.cell(COLS.deploy)} />
+        </div>
+
+        {/* Parallel banner */}
+        <div style={S.parallelBanner}>
+          ⟷ When Documentation = YES — Technical Writer and Deployment Review run simultaneously
+        </div>
+
+        {/* ── PARALLEL ROW: TW + Deployment Steps 1–3 ─────────────────────── */}
+        <div style={S.laneRow(130)}>
+          <div style={S.cell(COLS.csd)} />
+          <div style={S.cell(COLS.sa)} />
+          <div style={S.cell(COLS.dev)} />
+          <div style={S.cell(COLS.qa)} />
+          <div style={S.cell(COLS.tw)}>
+            <div style={S.step('#BAE6FD','#0C4A6E','#38BDF8')}>
+              <b style={S.stepTitle}>Technical Writer</b>
+              <ul style={S.ul}>
+                <li style={S.li}>Review SA document + developer notes</li>
+                <li style={S.li}>Review wireframes and annotation doc</li>
+                <li style={S.li}>Write user-facing documentation</li>
+                <li style={S.li}>Attach completed doc to ticket</li>
+                <li style={S.li}>Notify SA when complete</li>
+              </ul>
+            </div>
+            <span style={S.badge('#D1FAE5','#065F46')}>✓ Doc attached to ticket</span>
+          </div>
+          <div style={S.cell(COLS.deploy)}>
+            <div style={S.step('#D1FAE5','#064E3B','#6EE7B7')}>
+              <b style={S.stepTitle}>Deployment Review (Steps 1–3)</b>
+              <ul style={S.ul}>
+                <li style={S.li}>Extract deployment report from Nimble HRMIS</li>
+                <li style={S.li}>Run Git Analyser · MAIN vs DEVELOP</li>
+                <li style={S.li}>Upload to Internal Tool · Resolve discrepancies</li>
+              </ul>
+            </div>
+            <span style={S.badge('#D1FAE5','#065F46')}>✓ Review complete</span>
+          </div>
+        </div>
+        <ArrowRow tw={true} deploy={true} />
+
+        {/* ── PARALLEL SYNC ────────────────────────────────────────────────── */}
+        <div style={S.laneRow(56)}>
+          <div style={S.cell(COLS.csd)} />
+          <div style={S.cell(COLS.sa)}>
+            <div style={{ ...S.step('#F0FDF4','#14532D','#86EFAC'), fontWeight:700, fontSize:10 }}>
+              <b style={S.stepTitle}>◆ Parallel Sync</b>
+              SA confirms: TW doc attached to ticket + Deployment review complete. Both required before sign-off.
+            </div>
+          </div>
+          <div style={S.cell(COLS.dev)} /><div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.tw)} /><div style={S.cell(COLS.deploy)} />
+        </div>
+        <ArrowRow sa={true} deploy={true} />
+
+        {/* DEPLOYMENT SECTION LABEL */}
+        <div style={S.sectionRow}><span style={S.sectionLbl}>Deployment Review — Final Steps</span></div>
 
         {/* STEP 4 — Sign-off gate */}
         <div style={S.laneRow(72)}>
-          <div style={S.cell(COLS.csd)} /><div style={S.cell(COLS.sa)} /><div style={S.cell(COLS.dev)} /><div style={S.cell(COLS.qa)} />
+          <div style={S.cell(COLS.csd)} /><div style={S.cell(COLS.sa)} /><div style={S.cell(COLS.dev)} /><div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.tw)} />
           <div style={S.cell(COLS.deploy)}>
             <div style={S.step('#FEF9C3','#713F12','#FDE047',{fontWeight:700})}>
               <b style={S.stepTitle}>◆ Step 4 — Sign-off Gate</b>
-              Final list shared with<br />Ram sir or Khem sir<br />Written approval required
+              Final list shared with<br />Team Lead or CEO<br />Written approval required
             </div>
           </div>
         </div>
         <div style={S.arrowRow}>
-          <div style={S.arrowCell} /><div style={S.arrowCell} /><div style={S.arrowCell} /><div style={S.arrowCell} />
-          <div style={S.arrowCell}>↓ <span style={{ fontSize:10, color:'#065F46', marginLeft:3 }}>Approved</span></div>
+          <div style={S.arrowCell} /><div style={S.arrowCell} /><div style={S.arrowCell} /><div style={S.arrowCell} /><div style={S.arrowCell} />
+          <div style={S.arrowCell}>↓ <span style={{ fontSize:9, color:'#065F46', marginLeft:3 }}>Approved</span></div>
         </div>
 
         {/* STEPS 5–8 */}
@@ -424,7 +480,7 @@ export default function ToBeFlow() {
         ].map(({ step, label }) => (
           <div key={step}>
             <div style={S.laneRow(52)}>
-              <div style={S.cell(COLS.csd)} /><div style={S.cell(COLS.sa)} /><div style={S.cell(COLS.dev)} /><div style={S.cell(COLS.qa)} />
+              <div style={S.cell(COLS.csd)} /><div style={S.cell(COLS.sa)} /><div style={S.cell(COLS.dev)} /><div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.tw)} />
               <div style={S.cell(COLS.deploy)}>
                 <div style={S.step('#D1FAE5','#064E3B','#6EE7B7')}><b style={S.stepTitle}>{step}</b>{label}</div>
               </div>
@@ -435,7 +491,7 @@ export default function ToBeFlow() {
 
         {/* STEP 9 — Release note gate */}
         <div style={S.laneRow(52)}>
-          <div style={S.cell(COLS.csd)} /><div style={S.cell(COLS.sa)} /><div style={S.cell(COLS.dev)} /><div style={S.cell(COLS.qa)} />
+          <div style={S.cell(COLS.csd)} /><div style={S.cell(COLS.sa)} /><div style={S.cell(COLS.dev)} /><div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.tw)} />
           <div style={S.cell(COLS.deploy)}>
             <div style={S.step('#FEF9C3','#713F12','#FDE047',{fontWeight:700})}>
               <b style={S.stepTitle}>◆ Step 9 — Gate</b>
@@ -445,18 +501,18 @@ export default function ToBeFlow() {
         </div>
         <div style={S.arrowRow}>
           <div style={S.arrowCell}>↓</div>
-          <div style={S.arrowCell} /><div style={S.arrowCell} /><div style={S.arrowCell} />
+          <div style={S.arrowCell} /><div style={S.arrowCell} /><div style={S.arrowCell} /><div style={S.arrowCell} />
           <div style={S.arrowCell}>↓</div>
         </div>
 
         {/* FINAL ROW */}
         <div style={S.laneRow(44)}>
           <div style={S.cell(COLS.csd)}>
-            <div style={{ ...S.step('#DBEAFE','#1E3A8A','#93C5FD'), fontSize:11 }}>
+            <div style={{ ...S.step('#DBEAFE','#1E3A8A','#93C5FD'), fontSize:10 }}>
               <b style={S.stepTitle}>CSD notified</b>Ticket closed
             </div>
           </div>
-          <div style={S.cell(COLS.sa)} /><div style={S.cell(COLS.dev)} /><div style={S.cell(COLS.qa)} />
+          <div style={S.cell(COLS.sa)} /><div style={S.cell(COLS.dev)} /><div style={S.cell(COLS.qa)} /><div style={S.cell(COLS.tw)} />
           <div style={S.cell(COLS.deploy)}>
             <div style={{ ...S.step('#D1FAE5','#064E3B','#6EE7B7'), borderRadius:20, fontWeight:700 }}>✓ Ticket Closed</div>
           </div>

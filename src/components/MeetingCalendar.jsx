@@ -91,7 +91,7 @@ export default function MeetingCalendar() {
         <p style={{ fontSize: '13px', color: '#333', margin: '0 0 12px 0' }}>
           Every team member is required to fill in the daily work record at the end of each working day.
           This sheet is maintained by <strong>Prajwal sir (PM)</strong> and work progress is tracked daily by{' '}
-          <strong>Ram Sapkota (Senior Dev)</strong> and <strong>Khem sir</strong>.
+          <strong>Ram Sapkota (Senior Dev)</strong> and <strong>CEO</strong>.
         </p>
         <a
           href="https://docs.google.com/spreadsheets/d/1OxTHqtPXKXxjD5cysfgicDbpSB9oBeLUqhApHkDDXRw/edit?gid=712146022#gid=712146022"

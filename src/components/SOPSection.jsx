@@ -298,10 +298,10 @@ const saRole = {
   color: '#FDF0EC', text: '#8B2500', accent: '#C0391B',
   monitoring: [
     { text: 'Check Daily Log Book entries every morning before standup ends — flag missing entries immediately.', owner: 'Prajwol', fallback: 'Pareekshit' },
-    { text: 'Use Work Log Report filtered by date and team member to build the weekly summary for Ram sir.', owner: 'Prajwol', fallback: 'Pareekshit' },
+    { text: 'Use Work Log Report filtered by date and team member to build the weekly summary for Team Lead.', owner: 'Prajwol', fallback: 'Pareekshit' },
     { text: 'If a ticket has exceeded its estimate — check in with the developer the same day.', owner: 'All SA' },
-    { text: 'If a developer is blocked — resolve it same day. Escalate to Ram sir or Khem sir before end of day if unresolved.', owner: 'All SA' },
-    { text: 'Report to Ram sir each week: tickets completed, in progress, overdue, and blocked.', owner: 'Annant', fallback: 'Sudesh' },
+    { text: 'If a developer is blocked — resolve it same day. Escalate to Team Lead or CEO before end of day if unresolved.', owner: 'All SA' },
+    { text: 'Report to Team Lead each week: tickets completed, in progress, overdue, and blocked.', owner: 'Annant', fallback: 'Sudesh' },
   ],
   steps: [
     {
@@ -355,7 +355,7 @@ const saRole = {
       num: '06', label: 'Deployment Preparation', owner: 'Gopi',
       steps: [
         'Prepare a Deployment Note for every release — no deployment proceeds without one.',
-        'Get written approval from Ram sir or Khem sir — verbal approval is not enough.',
+        'Get written approval from Team Lead or CEO — verbal approval is not enough.',
         'Schedule deployment at a low-impact time — avoid peak business hours.',
         'Fill in the Deployment Note below.',
       ],
@@ -364,7 +364,7 @@ const saRole = {
         subtitle: 'To be completed by SA and approved before every production deployment',
         fields: [
           { label: 'Deployment Date & Time',  placeholder: 'Scheduled date and time' },
-          { label: 'Approved By',             placeholder: 'Ram sir / Khem sir — name + date of approval' },
+          { label: 'Approved By',             placeholder: 'Team Lead / CEO — name + date of approval' },
           { label: 'Tickets in This Release', placeholder: 'List all ticket IDs being deployed e.g. #33201, #33207', wide: true },
           { label: 'Modules Affected',        placeholder: 'Which modules or database tables are touched by this release.', wide: true },
           { label: 'Rollback Plan',           placeholder: 'Exact steps to reverse this deployment if something fails.', wide: true },
@@ -420,7 +420,7 @@ const devRole = {
   color: '#EBF5FF', text: '#1F4E79', accent: '#1F4E79',
   monitoring: [
     { text: 'Fill in the Daily Log Book before standup ends — every day, no exceptions.', owner: 'All Dev' },
-    { text: 'Log time per ticket honestly — this feeds the dashboard and Ram sir\'s weekly report.', owner: 'All Dev' },
+    { text: 'Log time per ticket honestly — this feeds the dashboard and Team Lead\'s weekly report.', owner: 'All Dev' },
     { text: 'If a ticket is taking longer than estimated — tell SA immediately, not at the end of the sprint.', owner: 'All Dev' },
     { text: 'All scope questions or changes go through SA — do not accept direct requests from clients or CSD.', owner: 'All Dev' },
   ],
@@ -574,7 +574,57 @@ const qaRole = {
   ],
 }
 
-const roles = [saRole, devRole, qaRole]
+const twRole = {
+  id: 'tw',
+  title: 'Technical Writer SOP',
+  owner: 'Technical Writer',
+  color: '#0369A1',
+  text: '#fff',
+  accent: '#0369A1',
+  monitoring: [
+    { text: 'Check for tickets flagged "Documentation Required = Yes" that have reached QA sign-off — pick up immediately.', owner: 'Technical Writer' },
+    { text: 'Ensure every documentation task is completed and attached before the deployment sign-off gate.', owner: 'Technical Writer' },
+  ],
+  steps: [
+    {
+      num: '01', label: 'Receive Notification', owner: 'Technical Writer',
+      steps: [
+        'SA notifies Technical Writer when a ticket with "Documentation Required = Yes" receives QA sign-off.',
+        'Check the ticket in Nimble HRMIS — confirm the QA sign-off badge is present before starting.',
+        'Note the deployment batch date — documentation must be complete before the sign-off gate.',
+      ],
+    },
+    {
+      num: '02', label: 'Review Source Materials', owner: 'Technical Writer',
+      steps: [
+        'Read the SA Visual Annotation Document attached to the ticket — understand what changed and where.',
+        'Review the Developer Document for technical context — module, method, and impact area.',
+        'Review the approved wireframe or design reference if available.',
+        'If anything is unclear, raise a question to SA before writing — do not guess.',
+      ],
+    },
+    {
+      num: '03', label: 'Write User Documentation', owner: 'Technical Writer',
+      steps: [
+        'Write in plain language — assume the reader has no technical background.',
+        'Include: what the feature does, how to use it step by step, any screenshots or annotated images.',
+        'For bug fixes: document the corrected behaviour and what the user should now expect.',
+        'Keep it concise — one clear paragraph per step, no jargon.',
+      ],
+    },
+    {
+      num: '04', label: 'Attach and Notify', owner: 'Technical Writer',
+      steps: [
+        'Attach the completed documentation file directly to the ticket in Nimble HRMIS.',
+        'Add a ticket comment: "Documentation complete — attached. Ready for deployment sign-off."',
+        'Notify SA in writing that the documentation task is done.',
+        'Do not mark the task complete until SA confirms the attachment is visible on the ticket.',
+      ],
+    },
+  ],
+}
+
+const roles = [saRole, devRole, qaRole, twRole]
 
 // ═══════════════════════════════════════════════════════════════════════════
 // RENDER

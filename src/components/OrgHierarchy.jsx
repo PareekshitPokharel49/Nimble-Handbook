@@ -1,23 +1,25 @@
 const DEPTS = [
-  { x: 176, label: 'System Analyst', color: '#9B59B6' },
-  { x: 500, label: 'Developer',      color: '#16A085' },
-  { x: 820, label: 'QA',             color: '#E67E22' },
+  { x: 140, label: 'System Analyst',   color: '#9B59B6' },
+  { x: 420, label: 'Developer',        color: '#16A085' },
+  { x: 680, label: 'QA',               color: '#E67E22' },
+  { x: 890, label: 'Tech Writer',      color: '#0369A1' },
 ]
 
 const MEMBERS = [
-  { x:  56, label: 'Prajwol',    dept: 0 },
-  { x: 116, label: 'Annant',     dept: 0 },
-  { x: 176, label: 'Pareekshit', dept: 0 },
-  { x: 236, label: 'Sudesh',     dept: 0 },
-  { x: 296, label: 'Gopi',       dept: 0 },
-  { x: 386, label: 'Gopal',      dept: 1, sub: 'Deployment' },
-  { x: 443, label: 'Prashant',   dept: 1 },
-  { x: 500, label: 'Chiranjivi', dept: 1 },
-  { x: 557, label: 'Ashmita',    dept: 1 },
-  { x: 614, label: 'Anu',        dept: 1 },
-  { x: 755, label: 'Shramila',   dept: 2 },
-  { x: 820, label: 'Sadikshya',  dept: 2 },
-  { x: 885, label: 'Bimala',     dept: 2 },
+  { x:  40, label: 'Prajwol',    dept: 0 },
+  { x:  90, label: 'Annant',     dept: 0 },
+  { x: 140, label: 'Pareekshit', dept: 0 },
+  { x: 190, label: 'Sudesh',     dept: 0 },
+  { x: 240, label: 'Gopi',       dept: 0 },
+  { x: 346, label: 'Gopal',      dept: 1, sub: 'Deployment' },
+  { x: 396, label: 'Prashant',   dept: 1 },
+  { x: 446, label: 'Chiranjivi', dept: 1 },
+  { x: 496, label: 'Ashmita',    dept: 1 },
+  { x: 546, label: 'Anu',        dept: 1 },
+  { x: 630, label: 'Shramila',   dept: 2 },
+  { x: 680, label: 'Sadikshya',  dept: 2 },
+  { x: 730, label: 'Bimala',     dept: 2 },
+  { x: 890, label: 'Tech Writer',dept: 3 },
 ]
 
 function curve(x1, y1, x2, y2) {
@@ -31,7 +33,7 @@ function OrgChart() {
   const memberY = 278
 
   return (
-    <svg viewBox="0 0 1000 340" style={{ width:'100%', maxWidth:1000, display:'block', margin:'0 auto 36px', borderRadius:10 }}>
+    <svg viewBox="0 0 1000 340" style={{ width:'100%', maxWidth:1060, display:'block', margin:'0 auto 36px', borderRadius:10 }}>
       <rect x={0} y={0} width={1000} height={340} fill="#F1F3F6" rx={10} />
 
       {/* root → dept curves */}
@@ -80,14 +82,15 @@ export default function OrgHierarchy() {
       <ul className="bullet-list">
         <li><strong>CSD</strong> — Customer Support Department. First point of contact for all client issues. Responsible for logging and tracking every ticket raised.</li>
         <li><strong>System Analyst (SA)</strong> — Reviews and triages all incoming tickets. Owns sprint planning, backlog management, deployment preparation, and cross-team coordination. Prajwal is the primary SA.</li>
-        <li><strong>Developer</strong> — Builds and fixes features based on tickets assigned by SA. Responsible for local testing, impact analysis, and code quality before handoff to QA. Khem sir leads the dev team.</li>
+        <li><strong>Developer</strong> — Builds and fixes features based on tickets assigned by SA. Responsible for local testing, impact analysis, and code quality before handoff to QA. CEO leads the dev team.</li>
         <li><strong>QA</strong> — Tests all changes before they reach production. Maintains test checklists per module and provides formal sign-off before deployment.</li>
+        <li><strong>Technical Writer</strong> — Activated when SA marks a ticket "Documentation Required = Yes". Writes user-facing documentation in parallel with the deployment review, and attaches it to the ticket before the sign-off gate.</li>
       </ul>
 
       <div className="sub-heading">Reporting and Approval Line</div>
       <ul className="bullet-list">
-        <li>CSD logs ticket → SA triages and assigns → Developer builds → QA validates → SA prepares deployment.</li>
-        <li>Final deployment to production requires written approval from <strong>Ram sir or Khem sir</strong> before anything goes live.</li>
+        <li>CSD logs ticket → SA triages and assigns → Developer builds → QA validates → SA prepares deployment → Technical Writer documents (if required) in parallel with Deployment review.</li>
+        <li>Final deployment to production requires written approval from <strong>Team Lead or CEO</strong> before anything goes live.</li>
       </ul>
     </>
   )

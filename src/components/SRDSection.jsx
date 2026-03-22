@@ -124,7 +124,7 @@ function Flowchart() {
         <DA x={cx} y1={598} y2={620} />
 
         {/* ── 07: Sign-off ── */}
-        <Step y={620} fill="#B45309" num="07" label="Submit for Written Sign-off" sub="Ram sir / Khem sir — verbal approval not accepted" />
+        <Step y={620} fill="#B45309" num="07" label="Submit for Written Sign-off" sub="Team Lead / CEO — verbal approval not accepted" />
 
         <DA x={cx} y1={676} y2={696} />
 
@@ -196,7 +196,7 @@ function SRDDocument() {
           {[
             ['SRD ID', 'SRD-2026-014'], ['Version', 'v1.0'], ['Status', 'Approved'],
             ['Date', '19 March 2026'], ['Prepared By', 'Prajwal (System Analyst)'],
-            ['Approved By', 'Ram sir — 20 March 2026'],
+            ['Approved By', 'Team Lead — 20 March 2026'],
             ['Project / Module', 'Nimble HRMIS — Leave Management Module'],
             ['Requirement Type', 'Feature Request'],
             ['Requested By', 'CSD — on behalf of client (Himal Hydro)'],
@@ -348,14 +348,14 @@ function SRDDocument() {
             </div>
             <div style={{ padding: '14px 16px' }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', marginBottom: 6, fontFamily: "'Segoe UI', sans-serif", textTransform: 'uppercase', letterSpacing: 0.6 }}>Approval Sign-off</div>
-              <div style={{ fontSize: 13, color: '#111827' }}>Ram sir</div>
+              <div style={{ fontSize: 13, color: '#111827' }}>Team Lead</div>
               <div style={{ fontSize: 11, color: '#6B7280', marginTop: 2 }}>20 March 2026 — <em>"Approved as documented. Proceed with ticket creation."</em></div>
             </div>
           </div>
           <div style={{ padding: '10px 16px', background: '#FAFAFA' }}>
             <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', marginBottom: 4, fontFamily: "'Segoe UI', sans-serif", textTransform: 'uppercase', letterSpacing: 0.6 }}>Revision History</div>
             <div style={{ fontSize: 12, color: '#374151' }}>v1.0 — 19 March 2026 — Initial draft (Prajwal)</div>
-            <div style={{ fontSize: 12, color: '#374151' }}>v1.0 — Approved 20 March 2026 — No changes requested (Ram sir)</div>
+            <div style={{ fontSize: 12, color: '#374151' }}>v1.0 — Approved 20 March 2026 — No changes requested (Team Lead)</div>
           </div>
         </div>
 

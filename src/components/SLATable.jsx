@@ -10,7 +10,7 @@ const rules = [
   'SA must set priority at Gate 1 before the ticket moves to any developer.',
   'For Immediate or Urgent tickets — SA must notify the developer directly, not just via the ticket tool.',
   'SLA clock starts when CSD logs the ticket, not when SA reviews it.',
-  'If an SLA is at risk of being missed — SA flags to Ram sir or Khem sir immediately.',
+  'If an SLA is at risk of being missed — SA flags to Team Lead or CEO immediately.',
   'Priority can only be changed by SA with a written reason added in the ticket comments.',
 ]
 
