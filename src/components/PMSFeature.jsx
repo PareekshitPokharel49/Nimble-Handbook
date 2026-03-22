@@ -121,6 +121,17 @@ const features = [
     label: 'Open Wireframe in Full Screen ↗',
   },
   {
+    num: 13,
+    title: 'Documentation Required — SA Triage Field',
+    desc: 'A new mandatory field added to the SA triage form for Feature tickets. SA selects Yes or No to indicate whether user-facing documentation is needed. When Yes is selected, SA specifies the documentation type, complexity, and notes for the Technical Writer. After QA sign-off, the system automatically notifies the Technical Writer, who then writes and attaches the documentation in parallel with the deployment review — before the sign-off gate.',
+    cards: [
+      { title: 'Yes / No Toggle with Context', desc: 'SA picks Yes or No with a clear description of when each applies. Selecting Yes reveals fields for Documentation Type (User Guide, How-To, Release Note, Admin Reference), Complexity level, and freeform Notes for the Technical Writer — giving TW everything needed without a follow-up meeting.', color: '#E0F2FE', text: '#0369A1' },
+      { title: 'Auto-Notification to Technical Writer', desc: 'When Documentation Required = Yes and QA sign-off is received, the system sends an in-app notification to the Technical Writer with ticket details, documentation type, complexity, SA notes, and the deployment batch deadline. No manual handoff needed — TW is looped in automatically at the right moment.', color: '#F0FDF4', text: '#15803D' },
+    ],
+    file: '/nimble_doc_required.html',
+    label: 'Open Wireframe in Full Screen ↗',
+  },
+  {
     num: 12,
     title: 'Smart Comment Format — Auto-fill on Developer Selection',
     desc: 'When adding a comment on a ticket, the comment box automatically detects the ticket type (Bug or Feature — already set by SA) and pre-fills the correct structured comment format the moment a developer is selected as the assignee. No manual format selection needed — the right template appears instantly based on what SA already defined.',

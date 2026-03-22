@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Documentation Required — SA Triage Field</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #f0f2f5; min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 24px 16px; }
+
+  /* ── Top bar ── */
+  .topbar { width: 100%; max-width: 940px; background: #1F4E79; color: #fff; border-radius: 8px 8px 0 0; padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; }
+  .topbar-title { font-size: 15px; font-weight: 700; }
+  .topbar-sub { font-size: 11px; opacity: 0.7; }
+
+  /* ── Main form card ── */
+  .card { width: 100%; max-width: 940px; background: #fff; border: 1px solid #d0d7de; border-top: none; border-radius: 0 0 8px 8px; padding: 0 0 24px 0; }
+
+  /* ── Section header inside card ── */
+  .sec-head { background: #F8FAFC; border-bottom: 1px solid #E5E7EB; padding: 10px 24px; font-size: 12px; font-weight: 700; color: #374151; letter-spacing: 0.5px; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+  .sec-badge { background: #1F4E79; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 10px; }
+
+  /* ── Form rows ── */
+  .form-body { padding: 20px 24px; }
+  .row { display: grid; gap: 14px; margin-bottom: 14px; }
+  .row-2 { grid-template-columns: 1fr 1fr; }
+  .row-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .row-1 { grid-template-columns: 1fr; }
+  label { display: block; font-size: 11px; font-weight: 700; color: #374151; margin-bottom: 5px; }
+  .req { color: #DC2626; margin-left: 2px; }
+  input[type=text], select, textarea {
+    width: 100%; border: 1px solid #D1D5DB; border-radius: 5px; padding: 7px 10px;
+    font-size: 12px; color: #111827; background: #fff; outline: none;
+    font-family: Arial, sans-serif;
+  }
+  input[type=text]:focus, select:focus, textarea:focus { border-color: #1F4E79; box-shadow: 0 0 0 2px rgba(31,78,121,0.12); }
+  textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
+  .field-hint { font-size: 10px; color: #9CA3AF; margin-top: 3px; }
+
+  /* ── Divider ── */
+  .divider { height: 1px; background: #E5E7EB; margin: 6px 0 18px; }
+
+  /* ── DOC REQUIRED TOGGLE SECTION ── */
+  .doc-section { border: 2px solid #0369A1; border-radius: 8px; overflow: hidden; margin: 6px 0 18px; }
+  .doc-head { background: #0369A1; color: #fff; padding: 10px 18px; display: flex; align-items: center; justify-content: space-between; }
+  .doc-head-title { font-size: 13px; font-weight: 700; }
+  .doc-head-sub { font-size: 10px; opacity: 0.8; }
+  .doc-toggle-row { padding: 16px 18px; display: flex; align-items: flex-start; gap: 40px; background: #F0F9FF; border-bottom: 1px solid #BAE6FD; }
+
+  .toggle-option { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .toggle-radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #D1D5DB; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .toggle-radio.selected { border-color: #0369A1; background: #0369A1; }
+  .toggle-radio.selected::after { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #fff; display: block; }
+  .toggle-label { font-size: 13px; font-weight: 700; color: #1E3A5F; }
+  .toggle-sub { font-size: 11px; color: #4B5563; margin-top: 2px; }
+
+  /* ── YES panel (expanded) ── */
+  .doc-yes-panel { padding: 16px 18px; background: #fff; }
+  .doc-yes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+  .doc-yes-full { margin-bottom: 14px; }
+  .doc-type-pills { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
+  .pill { padding: 5px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; border: 1.5px solid; cursor: pointer; user-select: none; }
+  .pill.active { background: #0369A1; border-color: #0369A1; color: #fff; }
+  .pill.inactive { background: #fff; border-color: #BAE6FD; color: #0369A1; }
+
+  /* ── NO panel ── */
+  .doc-no-panel { padding: 14px 18px; background: #F9FAFB; display: flex; align-items: center; gap: 12px; }
+  .doc-no-icon { font-size: 22px; }
+  .doc-no-text { font-size: 12px; color: #6B7280; }
+  .doc-no-text b { color: #374151; }
+
+  /* ── Notification preview ── */
+  .notif-preview { margin: 0 18px 16px; background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 6px; padding: 10px 14px; display: flex; gap: 10px; align-items: flex-start; }
+  .notif-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .notif-text { font-size: 11px; color: #1E40AF; line-height: 1.6; }
+  .notif-text b { font-size: 12px; display: block; margin-bottom: 2px; }
+
+  /* ── Footer buttons ── */
+  .form-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 0 24px; }
+  .btn { padding: 9px 22px; border-radius: 5px; font-size: 13px; font-weight: 700; border: none; cursor: pointer; }
+  .btn-primary { background: #1F4E79; color: #fff; }
+  .btn-secondary { background: #fff; color: #374151; border: 1px solid #D1D5DB; }
+
+  /* ── State switcher (demo) ── */
+  .demo-bar { width: 100%; max-width: 940px; background: #FEF9C3; border: 1px solid #FDE047; border-radius: 6px; padding: 10px 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .demo-bar span { font-size: 11px; font-weight: 700; color: #713F12; }
+  .demo-btn { padding: 4px 14px; border-radius: 4px; font-size: 11px; font-weight: 700; border: 1.5px solid #B45309; cursor: pointer; background: #fff; color: #B45309; }
+  .demo-btn.active { background: #B45309; color: #fff; }
+
+  /* ── Flow note ── */
+  .flow-note { width: 100%; max-width: 940px; margin-top: 16px; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; padding: 14px 18px; }
+  .flow-note-title { font-size: 12px; font-weight: 700; color: #14532D; margin-bottom: 8px; }
+  .flow-steps { display: flex; align-items: center; gap: 0; flex-wrap: wrap; }
+  .flow-step { text-align: center; padding: 8px 12px; }
+  .flow-step-box { background: #DCFCE7; border: 1px solid #86EFAC; border-radius: 6px; padding: 6px 10px; font-size: 10px; font-weight: 700; color: #14532D; white-space: nowrap; }
+  .flow-step-box.tw { background: #E0F2FE; border-color: #38BDF8; color: #0C4A6E; }
+  .flow-step-box.gate { background: #FEF9C3; border-color: #FDE047; color: #713F12; }
+  .flow-arrow { font-size: 16px; color: #9CA3AF; padding: 0 4px; }
+  .flow-parallel { display: flex; flex-direction: column; gap: 6px; }
+  .flow-parallel-label { font-size: 9px; color: #0369A1; font-weight: 700; text-align: center; background: #DBEAFE; border-radius: 3px; padding: 1px 6px; }
+</style>
+</head>
+<body>
+
+<!-- Demo switcher -->
+<div class="demo-bar">
+  <span>WIREFRAME DEMO — Toggle State:</span>
+  <button class="demo-btn active" onclick="setState('yes')">Documentation Required = YES</button>
+  <button class="demo-btn" onclick="setState('no')">Documentation Required = NO</button>
+</div>
+
+<!-- Top bar -->
+<div class="topbar">
+  <div>
+    <div class="topbar-title">Add Task — SA Triage Form</div>
+    <div class="topbar-sub">System Analyst · Feature 13 — Documentation Required field</div>
+  </div>
+  <div style="font-size:11px; opacity:0.7;">Nimble HRMIS · My Tasks</div>
+</div>
+
+<!-- Main form -->
+<div class="card">
+
+  <!-- Basic info section -->
+  <div class="sec-head">
+    <span class="sec-badge">01</span> Basic Ticket Information
+  </div>
+  <div class="form-body" style="padding-bottom:4px;">
+    <div class="row row-1">
+      <div>
+        <label>Task Title <span class="req">*</span></label>
+        <input type="text" value="Add export button to Payroll Report screen" />
+      </div>
+    </div>
+    <div class="row row-3">
+      <div>
+        <label>Ticket Type <span class="req">*</span></label>
+        <select><option>Feature</option><option>Bug</option><option>Task</option></select>
+      </div>
+      <div>
+        <label>Priority <span class="req">*</span></label>
+        <select><option>Normal</option><option>High</option><option>Urgent</option><option>Immediate</option><option>Low</option></select>
+      </div>
+      <div>
+        <label>Assign to Sprint <span class="req">*</span></label>
+        <select><option>Current Sprint</option><option>Backlog</option></select>
+      </div>
+    </div>
+    <div class="row row-2">
+      <div>
+        <label>Start Date</label>
+        <input type="text" value="2026-03-24" />
+      </div>
+      <div>
+        <label>End Date</label>
+        <input type="text" value="2026-03-27" />
+      </div>
+    </div>
+    <div class="row row-1">
+      <div>
+        <label>Description <span class="req">*</span></label>
+        <textarea>Client requires an Export to Excel button on the Payroll Report screen. Clicking the button should download the currently filtered payroll data as a .xlsx file with the same column structure as the on-screen table.</textarea>
+      </div>
+    </div>
+    <div class="row row-1">
+      <div>
+        <label>Acceptance Criteria <span class="req">*</span></label>
+        <textarea style="min-height:54px;">- Export button visible on Payroll Report screen&#10;- Downloads .xlsx with matching columns&#10;- Respects active filters before exporting</textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Documentation Required section -->
+  <div class="sec-head" style="margin-top:4px;">
+    <span class="sec-badge" style="background:#0369A1;">02</span>
+    Technical Documentation Required
+    <span style="font-size:10px; color:#0369A1; background:#DBEAFE; padding:2px 8px; border-radius:10px; margin-left:auto; font-weight:700;">SA fills this — mandatory for Feature tickets</span>
+  </div>
+  <div style="padding: 14px 24px 0;">
+    <div class="doc-section">
+      <div class="doc-head">
+        <div>
+          <div class="doc-head-title">Does this feature require user-facing documentation?</div>
+          <div class="doc-head-sub">Technical Writer will be notified automatically when QA sign-off is received</div>
+        </div>
+      </div>
+
+      <!-- Toggle options -->
+      <div class="doc-toggle-row">
+        <div class="toggle-option" onclick="setState('yes')">
+          <div class="toggle-radio" id="radio-yes" style="border-color:#0369A1; background:#0369A1;">
+            <span style="width:7px;height:7px;border-radius:50%;background:#fff;display:block;"></span>
+          </div>
+          <div>
+            <div class="toggle-label">Yes — Documentation Required</div>
+            <div class="toggle-sub">New feature, updated workflow, or any change visible to end users</div>
+          </div>
+        </div>
+        <div class="toggle-option" onclick="setState('no')">
+          <div class="toggle-radio" id="radio-no"></div>
+          <div>
+            <div class="toggle-label">No — Documentation Not Required</div>
+            <div class="toggle-sub">Internal fix, backend change, or no visible UI change</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- YES panel -->
+      <div class="doc-yes-panel" id="panel-yes">
+        <div class="doc-yes-grid">
+          <div>
+            <label>Documentation Type <span class="req">*</span></label>
+            <div class="doc-type-pills">
+              <div class="pill active">User Guide</div>
+              <div class="pill inactive">How-To Article</div>
+              <div class="pill inactive">Release Note Entry</div>
+              <div class="pill inactive">Admin Reference</div>
+            </div>
+            <div class="field-hint">Select the type of documentation needed</div>
+          </div>
+          <div>
+            <label>Documentation Complexity</label>
+            <select>
+              <option>Simple — 1 to 2 screens, straightforward</option>
+              <option>Medium — multiple steps or screens involved</option>
+              <option>Complex — multiple modules, workflows, or roles</option>
+            </select>
+            <div class="field-hint">Helps Technical Writer estimate effort</div>
+          </div>
+        </div>
+        <div class="doc-yes-full">
+          <label>Notes for Technical Writer</label>
+          <textarea style="min-height:58px;" placeholder="Describe what the Technical Writer should focus on — e.g. which screens are affected, any terminology the client uses, anything that might be confusing to a non-technical reader.">Focus on the export button on the Payroll Report screen. Client calls this module "Salary Summary" so use that term. Include a screenshot showing where the button appears and a step-by-step on how to use the filter before exporting.</textarea>
+          <div class="field-hint">Optional but recommended — helps TW write accurate documentation without needing to come back with questions</div>
+        </div>
+        <div style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:6px; padding:10px 14px; display:flex; gap:10px; align-items:center;">
+          <div style="font-size:18px;">✅</div>
+          <div style="font-size:11px; color:#14532D; line-height:1.6;">
+            <b style="display:block; font-size:12px; margin-bottom:2px;">Technical Writer will be auto-notified</b>
+            When this ticket reaches <b>QA sign-off</b>, the Technical Writer will receive an in-app notification. Documentation must be completed and attached to the ticket before the deployment sign-off gate.
+          </div>
+        </div>
+      </div>
+
+      <!-- NO panel -->
+      <div class="doc-no-panel" id="panel-no" style="display:none;">
+        <div class="doc-no-icon">📋</div>
+        <div class="doc-no-text">
+          <b>No documentation will be created for this ticket.</b>
+          Technical Writer will not be notified. The ticket will proceed directly from QA sign-off to the deployment review without a documentation step.
+          If you change your mind, update this field before QA begins.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Notification preview (YES only) -->
+  <div class="notif-preview" id="notif-preview">
+    <div class="notif-icon">🔔</div>
+    <div class="notif-text">
+      <b>Auto-Notification Preview — sent to Technical Writer after QA sign-off</b>
+      <b>Ticket #1047</b> — Add export button to Payroll Report screen — is ready for documentation.<br />
+      Type: <b>User Guide · Simple</b> · Deployment batch: <b>Monday 30 March 2026</b><br />
+      Notes from SA: <i>"Focus on export button on Salary Summary screen..."</i><br />
+      → Please attach documentation to the ticket before the sign-off gate.
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="form-footer">
+    <button class="btn btn-secondary">Save as Draft</button>
+    <button class="btn btn-primary">Submit Ticket ↗</button>
+  </div>
+</div>
+
+<!-- Flow note -->
+<div class="flow-note">
+  <div class="flow-note-title">How this field connects to the ticket flow</div>
+  <div class="flow-steps">
+    <div class="flow-step"><div class="flow-step-box">SA sets<br/>Doc Required</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-step-box">Dev builds<br/>& tests</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-step-box">QA sign-off<br/>received</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step">
+      <div class="flow-parallel">
+        <div class="flow-parallel-label">Runs in parallel — Doc Required = YES</div>
+        <div style="display:flex; gap:8px;">
+          <div class="flow-step-box tw">Tech Writer<br/>writes docs</div>
+          <div class="flow-step-box">Deployment<br/>review</div>
+        </div>
+      </div>
+    </div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-step-box gate">Sign-off<br/>Gate</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-step-box">Deploy<br/>to prod</div></div>
+  </div>
+</div>
+
+<script>
+function setState(state) {
+  const yes = state === 'yes'
+  document.getElementById('panel-yes').style.display = yes ? 'block' : 'none'
+  document.getElementById('panel-no').style.display  = yes ? 'none'  : 'block'
+  document.getElementById('notif-preview').style.display = yes ? 'flex' : 'none'
+
+  const ry = document.getElementById('radio-yes')
+  const rn = document.getElementById('radio-no')
+  if (yes) {
+    ry.style.borderColor = '#0369A1'; ry.style.background = '#0369A1'
+    ry.innerHTML = '<span style="width:7px;height:7px;border-radius:50%;background:#fff;display:block;"></span>'
+    rn.style.borderColor = '#D1D5DB'; rn.style.background = '#fff'
+    rn.innerHTML = ''
+  } else {
+    rn.style.borderColor = '#0369A1'; rn.style.background = '#0369A1'
+    rn.innerHTML = '<span style="width:7px;height:7px;border-radius:50%;background:#fff;display:block;"></span>'
+    ry.style.borderColor = '#D1D5DB'; ry.style.background = '#fff'
+    ry.innerHTML = ''
+  }
+  document.querySelectorAll('.demo-btn').forEach((b,i) => {
+    b.classList.toggle('active', (i===0 && yes) || (i===1 && !yes))
+  })
+}
+</script>
+</body>
+</html>
