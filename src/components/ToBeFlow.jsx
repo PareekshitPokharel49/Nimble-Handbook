@@ -66,7 +66,7 @@ export default function ToBeFlow() {
   return (
     <>
       <h2 className="section-title">6. Improved Ticket Flow — To Be</h2>
-      <p className="section-subtitle">Version 5.0 · Technical Writer parallel path added · Effective from Day 1</p>
+      {/* <p className="section-subtitle">Version 5.0 · Technical Writer parallel path added · Effective from Day 1</p> */}
 
       <div style={S.wrap}>
 
