@@ -1,25 +1,24 @@
 const DEPTS = [
-  { x: 140, label: 'System Analyst',   color: '#9B59B6' },
-  { x: 420, label: 'Developer',        color: '#16A085' },
-  { x: 680, label: 'QA',               color: '#E67E22' },
-  { x: 890, label: 'Tech Writer',      color: '#0369A1' },
+  { x: 180, label: 'System Analyst', color: '#9B59B6' },
+  { x: 530, label: 'Developer',      color: '#16A085' },
+  { x: 860, label: 'QA',             color: '#E67E22' },
+  { x: 1060, label: 'Tech Writer',   color: '#0369A1' },
 ]
 
 const MEMBERS = [
   { x:  40, label: 'Prajwol',    dept: 0 },
-  { x:  90, label: 'Annant',     dept: 0 },
-  { x: 140, label: 'Pareekshit', dept: 0 },
-  { x: 190, label: 'Sudesh',     dept: 0 },
-  { x: 240, label: 'Gopi',       dept: 0 },
-  { x: 346, label: 'Gopal',      dept: 1, sub: 'Deployment' },
-  { x: 396, label: 'Prashant',   dept: 1 },
-  { x: 446, label: 'Chiranjivi', dept: 1 },
-  { x: 496, label: 'Ashmita',    dept: 1 },
-  { x: 546, label: 'Anu',        dept: 1 },
-  { x: 630, label: 'Shramila',   dept: 2 },
-  { x: 680, label: 'Sadikshya',  dept: 2 },
-  { x: 730, label: 'Bimala',     dept: 2 },
-  { x: 890, label: 'Tech Writer',dept: 3 },
+  { x: 110, label: 'Annant',     dept: 0 },
+  { x: 180, label: 'Pareekshit', dept: 0 },
+  { x: 250, label: 'Sudesh',     dept: 0 },
+  { x: 320, label: 'Gopi',       dept: 0 },
+  { x: 410, label: 'Gopal',      dept: 1, sub: 'Deployment' },
+  { x: 480, label: 'Prashant',   dept: 1 },
+  { x: 550, label: 'Chiranjivi', dept: 1 },
+  { x: 620, label: 'Ashmita',    dept: 1 },
+  { x: 690, label: 'Anu',        dept: 1 },
+  { x: 790, label: 'Shramila',   dept: 2 },
+  { x: 860, label: 'Sadikshya',  dept: 2 },
+  { x: 930, label: 'Bimala',     dept: 2 },
 ]
 
 function curve(x1, y1, x2, y2) {
@@ -28,13 +27,13 @@ function curve(x1, y1, x2, y2) {
 }
 
 function OrgChart() {
-  const rootX = 500, rootY = 30, rootW = 164, rootH = 54
+  const rootX = 580, rootY = 30, rootW = 164, rootH = 54
   const deptY = 170
   const memberY = 278
 
   return (
-    <svg viewBox="0 0 1000 340" style={{ width:'100%', maxWidth:1060, display:'block', margin:'0 auto 36px', borderRadius:10 }}>
-      <rect x={0} y={0} width={1000} height={340} fill="#F1F3F6" rx={10} />
+    <svg viewBox="0 0 1160 340" style={{ width:'100%', maxWidth:1160, display:'block', margin:'0 auto 36px', borderRadius:10 }}>
+      <rect x={0} y={0} width={1160} height={340} fill="#F1F3F6" rx={10} />
 
       {/* root → dept curves */}
       {DEPTS.map(d => (
@@ -52,8 +51,11 @@ function OrgChart() {
       {DEPTS.map(d => (
         <text key={d.label} x={d.x} y={deptY} textAnchor="middle" fontSize={14} fill={d.color}>{d.label}</text>
       ))}
+      {/* Tech Writer — no named member yet, show placeholder */}
+      <text x={1060} y={memberY} textAnchor="middle" fontSize={12} fill="#0369A1" fontStyle="italic" opacity={0.6}>To be assigned</text>
 
       {/* dept → member curves */}
+      <path d={curve(1060, deptY + 6, 1060, memberY - 14)} fill="none" stroke="#0369A1" strokeWidth={1.5} strokeDasharray="4 3" opacity={0.5} />
       {MEMBERS.map(m => (
         <path key={m.label} d={curve(DEPTS[m.dept].x, deptY + 6, m.x, memberY - 14)}
           fill="none" stroke={DEPTS[m.dept].color} strokeWidth={1.5} />
