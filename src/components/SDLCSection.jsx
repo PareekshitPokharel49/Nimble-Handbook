@@ -72,6 +72,7 @@ const sprintPhases = [
       'Deployment Prep Log completed — tickets, SQL scripts, impact analysis, rollback plan',
       'Deployment Note prepared and submitted for written approval from Team Lead / CEO',
       'No deployment proceeds without written approval — verbal approval is not accepted',
+      'If any ticket is marked Documentation Required = Yes — Technical Writer writes and attaches documentation in parallel with the deployment review. Both must be complete before the sign-off gate.',
     ],
   },
   {
