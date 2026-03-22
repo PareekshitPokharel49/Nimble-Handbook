@@ -100,17 +100,6 @@ const features = [
   },
   {
     num: 10,
-    title: 'Daily Activity Reporter — Keyboard-First Log Entry',
-    desc: 'A redesigned Daily Log Book UI built for speed. Team members can log all their daily activities without touching the mouse — Tab moves between Activity, Time, and Customer fields, and a new row is added automatically when Tab is pressed on the last field. Entries are grouped by day and submitted as a single daily record.',
-    cards: [
-      { title: 'Keyboard-First Entry Grid', desc: 'Each row has three fields: Activity (free text), Time (HH:MM auto-formatted), and Customer/Project tag. Tab navigates all fields. A new row is auto-added when Tab is pressed on the last Customer field. Backspace on an empty Activity row removes it.', color: '#F0FDF4', text: '#15803D' },
-      { title: 'Day Grouping & History', desc: 'One submit locks the full day\'s log as a single grouped record. Past days appear in a collapsible history panel below. A live summary strip shows total hours and entry count for the current day as you type.', color: '#FFF7ED', text: '#C2410C' },
-    ],
-    file: '/nimble_daily_log_v2.html',
-    label: 'Open Wireframe in Full Screen ↗',
-  },
-  {
-    num: 11,
     title: 'Task Planner — Daily Planning Board',
     desc: 'A personal daily task planner for team members. Organized by date tabs, each day shows a progress bar, a quick-add task bar, and two sections — Pending and Completed. Tasks carry estimated time, priority, and a done timestamp. The planner integrates directly with the ticketing system via a Convert to Ticket modal and supports screenshot capture per task.',
     cards: [
