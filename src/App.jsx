@@ -73,7 +73,8 @@ export default function App() {
 
   useEffect(() => {
     if (!unlocked) return
-    window.scrollTo(0, 0)
+    document.documentElement.scrollTop = 0
+    document.body.scrollTop = 0
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach(e => { if (e.isIntersecting) setActive(e.target.id) })
